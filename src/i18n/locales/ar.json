@@ -6148,7 +6148,9 @@
       "food_truck": "شاحنة طعام",
       "food_court": "ساحة طعام",
       "mobile_cafe": "مقهى متنقل",
-      "gym": "نادي رياضي"
+      "gym": "نادي رياضي",
+      "beauty_salon": "صالون تجميل",
+      "clinic": "عيادة"
     },
     "tenantStatus": {
       "active": "نشط",

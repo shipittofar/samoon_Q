@@ -6158,7 +6158,9 @@
       "food_truck": "Food truck",
       "food_court": "Food court",
       "mobile_cafe": "Mobile cafe",
-      "gym": "Gym"
+      "gym": "Gym",
+      "beauty_salon": "Beauty salon",
+      "clinic": "Clinic"
     },
     "tenantStatus": {
       "active": "Active",

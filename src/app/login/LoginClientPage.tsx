@@ -280,7 +280,6 @@ export function LoginClientPage() {
                 <div className="mb-6 space-y-3">
                   <PhoneInput
                     label={t('phoneNumber')}
-                    defaultCountry="US"
                     onChange={(e164, meta) => {
                       setPhoneE164(e164)
                       setDialCode(meta.dialCode)

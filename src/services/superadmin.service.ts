@@ -14,6 +14,8 @@ export type BusinessTypeValue =
   | 'food_court'
   | 'mobile_cafe'
   | 'gym'
+  | 'beauty_salon'
+  | 'clinic'
 
 export const BUSINESS_TYPE_VALUES: BusinessTypeValue[] = [
   'restaurant',
@@ -23,6 +25,8 @@ export const BUSINESS_TYPE_VALUES: BusinessTypeValue[] = [
   'food_court',
   'mobile_cafe',
   'gym',
+  'beauty_salon',
+  'clinic',
 ]
 
 export interface PlatformUserBlock {

@@ -6148,7 +6148,9 @@
       "food_truck": "فودتراک",
       "food_court": "فودکورت",
       "mobile_cafe": "کافه‌ی سیار",
-      "gym": "باشگاه"
+      "gym": "باشگاه",
+      "beauty_salon": "آرایشگاه و سالن زیبایی",
+      "clinic": "کلینیک"
     },
     "tenantStatus": {
       "active": "فعال",

@@ -648,8 +648,8 @@ describe('O. Hook existence (source-text)', () => {
     expect(hooksSrc).toContain('CAPABILITY_FLAG_MAP')
   })
 
-  it('useAdminModuleNav uses getAdminNav()', () => {
-    expect(hooksSrc).toContain('getAdminNav(')
+  it('useAdminModuleNav uses getAdminNav() (via getAdminNavForBusinessTypes)', () => {
+    expect(hooksSrc).toContain('getAdminNavForBusinessTypes(')
   })
 
   it('useModuleNav filters by featureFlagKey', () => {

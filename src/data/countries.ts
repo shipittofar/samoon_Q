@@ -323,6 +323,10 @@ export const TIMEZONE_COUNTRY_MAP: Record<string, string> = {
   'Europe/Helsinki': 'FI', 'Europe/Warsaw': 'PL', 'Europe/Prague': 'CZ',
   'Europe/Budapest': 'HU', 'Europe/Bucharest': 'RO', 'Europe/Athens': 'GR',
   'Europe/Istanbul': 'TR', 'Europe/Kiev': 'UA', 'Europe/Moscow': 'RU',
+  'Europe/Kyiv': 'UA', 'Europe/Dublin': 'IE', 'Europe/Lisbon': 'PT', 'Asia/Istanbul': 'TR',
+  'Asia/Calcutta': 'IN', 'Asia/Muscat': 'OM', 'Asia/Qatar': 'QA', 'Asia/Kuwait': 'KW',
+  'Asia/Bahrain': 'BH', 'Asia/Beirut': 'LB', 'Asia/Amman': 'JO', 'Asia/Damascus': 'SY',
+  'Asia/Dushanbe': 'TJ', 'Asia/Ashgabat': 'TM', 'Asia/Bishkek': 'KG',
   'Asia/Tehran': 'IR', 'Asia/Dubai': 'AE', 'Asia/Riyadh': 'SA',
   'Asia/Baghdad': 'IQ', 'Asia/Karachi': 'PK', 'Asia/Kolkata': 'IN',
   'Asia/Dhaka': 'BD', 'Asia/Colombo': 'LK', 'Asia/Kathmandu': 'NP',
@@ -401,6 +405,52 @@ export function loadLastSelected(): Country | null {
   } catch {
     return null
   }
+}
+
+/** Country used when nothing about the visitor points anywhere else. */
+export const FALLBACK_COUNTRY_CODE = 'IR'
+
+/** sessionStorage key caching the IP lookup for the rest of the visit. */
+export const IP_COUNTRY_KEY = 'phone_number-input-ip-country'
+
+let _ipCountryPromise: Promise<Country | null> | null = null
+
+/**
+ * Country of the visitor's IP, from our own backend (GET /api/core/geo/country/,
+ * a local IP database: the IP is not sent to any third party). Asked once per
+ * visit; resolves to null when unknown, slow (2.5s) or unreachable.
+ */
+export function fetchCountryFromIp(apiBaseUrl: string): Promise<Country | null> {
+  if (typeof window === 'undefined' || typeof fetch === 'undefined') return Promise.resolve(null)
+  const byCode = (code: unknown) =>
+    typeof code === 'string' ? COUNTRIES.find((c) => c.code === code.toUpperCase()) ?? null : null
+  try {
+    const cached = sessionStorage.getItem(IP_COUNTRY_KEY)
+    if (cached !== null) return Promise.resolve(byCode(cached))
+  } catch {}
+  if (_ipCountryPromise) return _ipCountryPromise
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+  const timer = controller ? setTimeout(() => controller.abort(), 2500) : null
+  _ipCountryPromise = fetch(`${apiBaseUrl.replace(/\/$/, '')}/core/geo/country/`, {
+    credentials: 'omit',
+    signal: controller?.signal,
+  })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((body: { country?: unknown } | null) => {
+      const country = byCode(body?.country)
+      try {
+        sessionStorage.setItem(IP_COUNTRY_KEY, country?.code ?? '')
+      } catch {}
+      return country
+    })
+    .catch(() => {
+      _ipCountryPromise = null // allow a retry on the next mount
+      return null
+    })
+    .finally(() => {
+      if (timer) clearTimeout(timer)
+    })
+  return _ipCountryPromise
 }
 
 /** Strip non-digit characters from a string. */

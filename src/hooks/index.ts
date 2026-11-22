@@ -89,7 +89,7 @@ import type { P7Permission, PermissionCheckOptions, Role } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
 // owner.service.ts, or staff-assignment.service.ts remain in this file.
 // Access decisions come from usePermissions()/currentTenantSession only.
-import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
+import { getHeaderNav, getDashboardNav, getAdminNavForBusinessTypes, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
 import { reviewService } from '@/services/review.service'
@@ -555,7 +555,7 @@ export function useAdminModuleNav(): NavItem[] {
   const storeTenantId = usePermissionStore((s) => s.tenantId)
   const alignedTenant = tenantId && tenant?.id === tenantId ? tenant : null
   const permissions = usePermissions()
-  const allAdminNav = getAdminNav(alignedTenant?.businessTypes ?? [])
+  const allAdminNav = getAdminNavForBusinessTypes(alignedTenant?.businessTypes ?? [])
 
   // Deny-by-default while bootstrap or API permissions are unsettled.
   if (!canExecute) return []

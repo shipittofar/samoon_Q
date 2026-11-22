@@ -1150,6 +1150,20 @@ export function getAdminNav(activeModuleKeys?: string[]): NavItem[] {
   return modules.flatMap((m) => m.adminNavItems ?? [])
 }
 
+/**
+ * Console nav for a tenant's business types. Unlike getAdminNav, it never
+ * comes back empty for a tenant that has types: when no frontend module
+ * matches any of them (a type the backend accepts but the console has no
+ * module for yet, e.g. "gym"), it falls back to the generic service nav
+ * (catalogue, reservations, customers, staff, branches, settings...), so
+ * an owner is never left with only the businesses page.
+ */
+export function getAdminNavForBusinessTypes(businessTypes: string[]): NavItem[] {
+  const nav = getAdminNav(businessTypes)
+  if (nav.length > 0 || businessTypes.length === 0) return nav
+  return [...SERVICE_VERTICAL_ADMIN_NAV]
+}
+
 // ── Capability API (P6.2 — Multi-Business Foundation) ────────────────────────
 
 /**

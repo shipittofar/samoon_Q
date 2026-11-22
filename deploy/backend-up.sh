@@ -85,6 +85,37 @@ set_env CORS_ALLOWED_ORIGINS "${ORIGIN}"
 set_env PUBLIC_API_URL "${ORIGIN}/api"
 set_env PUBLIC_SITE_URL "${ORIGIN}"
 
+# IP-to-country database (DB-IP "IP to Country Lite", CC BY 4.0, ~5 MB):
+# preselects the phone country code on sign-in. Looked up locally by the
+# backend (GET /api/core/geo/country/), so visitor IPs never leave the server.
+# Refreshed when older than 30 days; a failed download is not fatal (the
+# sign-in page then falls back to time zone / browser language).
+GEOIP_DIR="${BACKEND_DIR}/geoip"
+GEOIP_FILE="${GEOIP_DIR}/country.mmdb"
+if [ "${SKIP_GEOIP:-0}" != "1" ] && { [ ! -s "${GEOIP_FILE}" ] || [ -n "$(find "${GEOIP_FILE}" -mtime +30 2>/dev/null)" ]; }; then
+  mkdir -p "${GEOIP_DIR}"
+  geoip_ok=0
+  # The current month's file is published during the month; fall back to last month's.
+  for month in "$(date -u +%Y-%m)" "$(date -u -d "$(date -u +%Y-%m-15) -1 month" +%Y-%m 2>/dev/null)"; do
+    [ -n "${month}" ] || continue
+    url="https://download.db-ip.com/free/dbip-country-lite-${month}.mmdb.gz"
+    say "Downloading IP-to-country database (${month})"
+    if curl -fsSL --retry 2 --max-time 120 "${url}" -o "${GEOIP_FILE}.gz.tmp" \
+       && gunzip -c "${GEOIP_FILE}.gz.tmp" > "${GEOIP_FILE}.tmp" \
+       && [ -s "${GEOIP_FILE}.tmp" ]; then
+      mv -f "${GEOIP_FILE}.tmp" "${GEOIP_FILE}"
+      geoip_ok=1
+      break
+    fi
+  done
+  rm -f "${GEOIP_FILE}.gz.tmp" "${GEOIP_FILE}.tmp"
+  if [ "${geoip_ok}" = "1" ]; then
+    say "IP-to-country database ready."
+  else
+    printf '\033[1;33m!!\033[0m %s\n' "Could not download the IP-to-country database; the phone country guess will use time zone / language only. Re-run later or place a .mmdb at ${GEOIP_FILE}." >&2
+  fi
+fi
+
 cd "${BACKEND_DIR}"
 say "Building and starting the backend (first build takes several minutes)"
 # celery + celery-beat: uploaded images are processed (and orphan uploads are

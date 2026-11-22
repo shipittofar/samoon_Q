@@ -293,7 +293,6 @@ export function AuthSessionPanel({ onAuthenticated }: AuthSessionPanelProps) {
         <div className="space-y-3">
           <PhoneInput
             label={t('phoneNumber')}
-            defaultCountry="US"
             onChange={(e164, meta) => {
               setPhoneE164(e164)
               setDialCode(meta.dialCode)

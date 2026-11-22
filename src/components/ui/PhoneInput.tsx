@@ -36,6 +36,8 @@ import {
   getMaxNationalDigits,
   getPinnedCountries,
   getRestCountries,
+  FALLBACK_COUNTRY_CODE,
+  fetchCountryFromIp,
   guessCountryFromLocale,
   guessCountryFromTimezone,
   loadRecentCountries,
@@ -46,6 +48,7 @@ import {
 } from '@/data/countries'
 import { FlagIcon } from '@/components/ui/FlagIcon'
 import { useMediaQuery } from '@/hooks/client'
+import { API_BASE_URL } from '@/constants'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -60,7 +63,7 @@ export interface PhoneInputMeta {
 export interface PhoneInputProps {
   value?: string           // E.164 preferred, or national number
   onChange?: (e164: string, meta: PhoneInputMeta) => void
-  defaultCountry?: string  // ISO alpha-2; falls back to browser locale
+  defaultCountry?: string  // ISO alpha-2; else last choice → time zone → IP → browser language → IR
   label?: string
   error?: string
   hint?: string
@@ -819,14 +822,26 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
     }
     const last = loadLastSelected()
     if (last) return last
-    const locale = guessCountryFromLocale()
-    if (locale) return locale
+    // The system clock's time zone says where the device is; the browser
+    // language only says which language it speaks (an en-US browser in Iran
+    // is common), so it comes after the IP lookup below.
     const tz = guessCountryFromTimezone()
     if (tz) return tz
-    return COUNTRIES.find((c) => c.code === 'US')!
+    const locale = guessCountryFromLocale()
+    if (locale) return locale
+    return COUNTRIES.find((c) => c.code === FALLBACK_COUNTRY_CODE)!
   }
 
+  /** Nothing definite (caller, value, last choice, time zone) chose the country. */
+  const initialIsGuess = (): boolean =>
+    !(defaultCountry && COUNTRIES.some((x) => x.code === defaultCountry.toUpperCase())) &&
+    !(value && value.startsWith('+') && parseE164(value).country) &&
+    !loadLastSelected() &&
+    !guessCountryFromTimezone()
+
   const [country, setCountry] = useState<Country>(resolveInitialCountry)
+  // Set once the user picks a country or types; the IP answer never overrides that.
+  const userChoseRef = useRef(false)
   const [national, setNational] = useState<string>(() => {
     if (value && value.startsWith('+')) {
       const parsed = parseE164(value)
@@ -869,8 +884,23 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
     [onChange],
   )
 
+  // Only a guess so far (browser language or the fallback): ask the backend
+  // which country the visitor's IP is in, and use it unless they already chose.
+  useEffect(() => {
+    if (!initialIsGuess()) return
+    let cancelled = false
+    fetchCountryFromIp(API_BASE_URL).then((c) => {
+      if (cancelled || !c || userChoseRef.current) return
+      setCountry((current) => (current.code === c.code ? current : c))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleCountrySelect = useCallback(
     (c: Country) => {
+      userChoseRef.current = true
       const trimmed = clampNationalDigits(national, c)
       setCountry(c)
       setNational(trimmed)
@@ -898,6 +928,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
   const applyNationalDigits = useCallback(
     (rawDigits: string) => {
       const digits = clampNationalDigits(rawDigits, country)
+      if (digits) userChoseRef.current = true
       setNational(digits)
       emitChange(country, digits)
       return digits
