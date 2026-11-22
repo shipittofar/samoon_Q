@@ -63,9 +63,11 @@ if [[ "${ADDR}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then IS_IP=1; fi
 say "Installing base packages"
 if command -v apt-get >/dev/null 2>&1; then
   apt-get update -y >/dev/null
-  apt-get install -y git curl ca-certificates openssl iproute2 python3 >/dev/null
+  apt-get install -y git curl ca-certificates openssl iproute2 python3 cron gzip >/dev/null
+  systemctl enable --now cron >/dev/null 2>&1 || true
 elif command -v dnf >/dev/null 2>&1; then
-  dnf install -y git curl ca-certificates openssl iproute python3 >/dev/null
+  dnf install -y git curl ca-certificates openssl iproute python3 cronie gzip >/dev/null
+  systemctl enable --now crond >/dev/null 2>&1 || true
 else
   die "Unsupported package manager (need apt or dnf)."
 fi
@@ -230,5 +232,11 @@ done
 # ── 10. install the `samoon` command ────────────────────────────────────────
 chmod +x "${INSTALL_DIR}/deploy/samoon.sh"
 ln -sf "${INSTALL_DIR}/deploy/samoon.sh" /usr/local/bin/samoon
-say "Installed. Commands:  samoon status | samoon update | samoon logs [service] | samoon admin-add | samoon set-address <ip-or-domain>"
+
+# Daily database backup, on unless someone turned it off (samoon backup-schedule off
+# leaves a marker so a re-run of the install does not turn it back on).
+if [ ! -f /etc/cron.d/samoon-backup ] && [ ! -f /etc/samoon/.backup-schedule-off ]; then
+  /usr/local/bin/samoon backup-schedule on || say "Could not turn on the daily backup (turn it on with: samoon backup-schedule on)"
+fi
+say "Installed. Commands:  samoon status | samoon update | samoon logs [service] | samoon admin-add | samoon set-address <ip-or-domain> | samoon backup | samoon restore <file> | samoon help"
 say "Site: https://${ADDR}"
