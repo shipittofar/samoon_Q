@@ -27,6 +27,8 @@ import { Avatar } from '@/components/ui'
 import { cn } from '@/utils'
 import { Button } from '@/components/ui/Button'
 import { PlatformAdminNavLink } from '@/components/admin/PlatformAdminNavLink'
+import { NotificationBell } from '@/components/layout/NotificationBell'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { resolveSupportedLocales, getLanguageInfo } from '@/i18n/runtime'
 
 
@@ -162,6 +164,13 @@ export function AdminHeader() {
             </button>
 
             <PlatformAdminNavLink />
+
+            {/* This business's notifications (live over the notification socket). */}
+            {activeTenantId && (
+              <ErrorBoundary feature="NotificationBell">
+                <NotificationBell tenantId={activeTenantId} />
+              </ErrorBoundary>
+            )}
 
             {/* Public site link — deep-links to this tenant's public page when slug is available */}
             <Link

@@ -48,6 +48,13 @@ export type RichNotificationType =
   | 'feature_flag_changed'
   | 'system_alert'
   | 'audit_critical'
+  // Created by the backend (notifications app) from real events:
+  | 'order_cancelled_by_customer'
+  | 'reservation_cancelled_by_customer'
+  | 'business_request_created'
+  | 'business_request_approved'
+  | 'business_request_rejected'
+  | 'password_changed'
 
 export interface NotificationScope {
   tenantId: string

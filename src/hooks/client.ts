@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { orderWebSocket, notificationWebSocket, type ConnectionStatus } from '@/services/websocket.service'
 import { useNotificationStore, useAuthStore } from '@/stores'
 import { requestNotificationToken, onForegroundMessage } from '@/lib/firebase'
 import { notificationService } from '@/services/combined.service'
 import type { Notification, OrderStatus, LoginCredentials } from '@/types'
+import type { RichNotification } from '@/types/notification'
 import toast from 'react-hot-toast'
 import { performAuthenticatedLoginFlow } from '@/hooks'
 import {
@@ -48,30 +50,52 @@ export function useOrderWebSocket(orderId: string | null) {
 }
 
 // ── useNotificationWebSocket ──────────────────────────────────────────────────
+/** Query keys that show notifications; refreshed when one arrives. */
+const NOTIFICATION_QUERY_KEYS = [
+  ['rich-notifications'],
+  ['rich-notifications-unread'],
+  ['notification-unread-count'],
+  ['notification-summary'],
+  ['notification-statistics'],
+] as const
+
+/**
+ * Personal notification socket (`/ws/notifications/?token=…&lang=…`), open
+ * while signed in. Each new notification shows a toast (in the page's
+ * language — the server renders it) and refreshes every notification list,
+ * bell and counter. After a reconnect the lists are refetched too, so
+ * anything that arrived while offline still shows up. Mock mode has no
+ * backend socket.
+ */
 export function useNotificationWebSocket() {
   const { isAuthenticated } = useAuthStore()
-  const { addNotification } = useNotificationStore()
+  const queryClient = useQueryClient()
   const [connected, setConnected] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected')
+  const lang = typeof document !== 'undefined' ? document.documentElement.lang || 'fa' : 'fa'
 
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!isAuthenticated || process.env.NEXT_PUBLIC_USE_MOCK === 'true') return
 
-    notificationWebSocket.connect('/notifications/')
+    const refresh = () => {
+      for (const queryKey of NOTIFICATION_QUERY_KEYS) void queryClient.invalidateQueries({ queryKey })
+    }
+
+    notificationWebSocket.connect(`/notifications/?lang=${encodeURIComponent(lang)}`)
 
     const unsubs = [
       notificationWebSocket.on('connected', () => setConnected(true)),
       notificationWebSocket.on('disconnected', () => setConnected(false)),
       notificationWebSocket.on('status', (s) => setConnectionStatus(s as ConnectionStatus)),
+      notificationWebSocket.on('connection_established', refresh),
       notificationWebSocket.on('notification.new', (data: unknown) => {
-        const notification = data as Notification
-        addNotification(notification)
-        toast(notification.message, {
-          icon: notification.type === 'order_update' ? '📦'
-            : notification.type === 'promotion' ? '🎉'
-            : notification.type === 'reservation_update' ? '📅'
-            : '🔔',
-        })
+        const n = data as Partial<RichNotification> | null
+        refresh()
+        if (n?.title) {
+          toast(n.message ? `${n.title} — ${n.message}` : n.title, {
+            icon: n.priority === 'urgent' ? '⚠️' : n.category === 'order' ? '📦' : n.category === 'reservation' ? '📅' : '🔔',
+          })
+        }
       }),
     ]
 
@@ -79,7 +103,7 @@ export function useNotificationWebSocket() {
       unsubs.forEach((fn) => fn())
       notificationWebSocket.disconnect()
     }
-  }, [isAuthenticated, addNotification])
+  }, [isAuthenticated, queryClient, lang])
 
   return { connected, connectionStatus }
 }

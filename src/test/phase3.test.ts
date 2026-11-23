@@ -467,10 +467,10 @@ describe('P3.12 — ErrorBoundary component', () => {
     expect(cartIdx).toBeGreaterThan(ebIdx)
   })
 
-  it('ErrorBoundary wraps NotificationCenter area in Header', () => {
+  it('ErrorBoundary wraps the notification bell area in Header', () => {
     const src = readFileSync(join(process.cwd(), 'src/components/layout/Header.tsx'), 'utf8')
     expect(src).toContain('ErrorBoundary')
-    expect(src).toContain('feature="NotificationCenter"')
+    expect(src).toContain('feature="NotificationBell"')
   })
 })
 

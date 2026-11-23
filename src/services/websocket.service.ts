@@ -151,7 +151,8 @@ export class DjangoChannelsWebSocket {
 
     this.updateStatus('connecting')
     const token = getAccessToken()
-    const wsUrl = token ? `${this.url}?token=${encodeURIComponent(token)}` : this.url
+    const sep = this.url.includes('?') ? '&' : '?'
+    const wsUrl = token ? `${this.url}${sep}token=${encodeURIComponent(token)}` : this.url
 
     try {
       this.socket = this.wsFactory(wsUrl)

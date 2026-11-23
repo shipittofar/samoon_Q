@@ -87,6 +87,10 @@ export function attachConsolePendingCountHandlers(opts: {
     if (!eventMatchesWorkspace(data, tenantId, branchId)) return
     invalidatePendingOrdersCountQueries(qc, tenantId, branchId)
     qc.invalidateQueries({ queryKey: ['live-orders', tenantId, branchId] })
+    // Open order lists and the changed order's page update without a refresh.
+    qc.invalidateQueries({ queryKey: ['admin-orders'] })
+    const orderId = (data as { order_id?: string } | null)?.order_id
+    if (orderId) qc.invalidateQueries({ queryKey: ['order', tenantId, orderId] })
   })
 
   const offReservation = socket.on('reservation.changed', (data) => {
@@ -94,6 +98,9 @@ export function attachConsolePendingCountHandlers(opts: {
     if (!eventMatchesWorkspace(data, tenantId, branchId)) return
     invalidatePendingReservationsCountQueries(qc, tenantId, branchId)
     qc.invalidateQueries({ queryKey: ['live-reservations', tenantId, branchId] })
+    qc.invalidateQueries({ queryKey: ['admin-reservations', tenantId] })
+    const reservationId = (data as { reservation_id?: string } | null)?.reservation_id
+    if (reservationId) qc.invalidateQueries({ queryKey: ['admin-reservation', tenantId, reservationId] })
   })
 
   return () => {

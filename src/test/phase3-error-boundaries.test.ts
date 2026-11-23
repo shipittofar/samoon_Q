@@ -122,28 +122,30 @@ describe('P3.12.2 — CartDrawer wrapped at the global host', () => {
 
 // ── P3.12.3 — NotificationCenter boundary coverage ───────────────────────────
 
-describe('P3.12.3 — NotificationCenter wrapped in Header', () => {
-  it('Header.tsx imports NotificationCenter', () => {
+// The header's notifications are the real-API NotificationBell (site and
+// console); the legacy NotificationCenter component is no longer mounted.
+describe('P3.12.3 — notification bell wrapped in Header', () => {
+  it('Header.tsx imports NotificationBell', () => {
     const content = src('components/layout/Header.tsx')
-    expect(content).toContain("from '@/components/notification/NotificationCenter'")
+    expect(content).toContain("from '@/components/layout/NotificationBell'")
   })
 
-  it('Header.tsx renders <NotificationCenter />', () => {
+  it('Header.tsx renders <NotificationBell />', () => {
     const content = src('components/layout/Header.tsx')
-    expect(content).toContain('<NotificationCenter')
+    expect(content).toContain('<NotificationBell')
   })
 
-  it('Header.tsx wraps NotificationCenter in ErrorBoundary', () => {
+  it('Header.tsx wraps NotificationBell in ErrorBoundary', () => {
     const content = src('components/layout/Header.tsx')
     const ebIdx = content.indexOf('<ErrorBoundary')
-    const ncIdx = content.indexOf('<NotificationCenter')
+    const ncIdx = content.indexOf('<NotificationBell')
     expect(ebIdx).toBeGreaterThan(-1)
     expect(ncIdx).toBeGreaterThan(ebIdx)
   })
 
-  it('Header.tsx uses feature="NotificationCenter" label', () => {
+  it('Header.tsx uses feature="NotificationBell" label', () => {
     const content = src('components/layout/Header.tsx')
-    expect(content).toContain('feature="NotificationCenter"')
+    expect(content).toContain('feature="NotificationBell"')
   })
 
   it('NotificationCenter is a real React component (not just a bell icon)', () => {
@@ -228,9 +230,9 @@ describe('P3.12.6 — Isolation: unique feature names', () => {
     expect(content).toContain('feature="FloatingCart"')
   })
 
-  it('NotificationCenter boundary uses "NotificationCenter" feature label', () => {
+  it('notification bell boundary uses "NotificationBell" feature label', () => {
     const content = src('components/layout/Header.tsx')
-    expect(content).toContain('feature="NotificationCenter"')
+    expect(content).toContain('feature="NotificationBell"')
   })
 
   it('MenuContent boundary uses "MenuContent" feature label', () => {

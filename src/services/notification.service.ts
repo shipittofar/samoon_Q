@@ -563,8 +563,11 @@ export const notificationRichService = {
     scope: NotificationScope,
     data?: Record<string, unknown>,
   ): void {
-    const fn = USE_MOCK ? createNotificationMock : createNotificationReal
-    fn(auditAction, actor, targetName, targetId, scope, data).catch(() => {})
+    // With a backend, notifications are created by the server from the real
+    // events (orders, reservations, staff changes, ...); the API refuses
+    // client-created ones. Only mock mode builds them here.
+    if (!USE_MOCK) return
+    createNotificationMock(auditAction, actor, targetName, targetId, scope, data).catch(() => {})
   },
 
   _resetMock(): void {

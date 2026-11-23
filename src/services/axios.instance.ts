@@ -138,6 +138,12 @@ api.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`
     }
 
+    // The page language (fa / en / ar): the backend renders texts such as
+    // notifications in it.
+    if (typeof document !== 'undefined' && document.documentElement.lang && !config.headers['Accept-Language']) {
+      config.headers['Accept-Language'] = document.documentElement.lang
+    }
+
     // Node's default agent reuses sockets. This API often answers 200 and then
     // drops the body on a reused socket, which breaks the RSC render.
     if (typeof window === 'undefined') {

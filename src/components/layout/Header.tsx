@@ -24,7 +24,6 @@ import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { NotificationCenter } from '@/components/notification/NotificationCenter'
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { BranchSelector } from '@/components/common/BranchSelector'
 import toast from 'react-hot-toast'
@@ -225,9 +224,11 @@ export function Header({ overlay = false }: HeaderProps) {
             </div>
 
             {/* Notifications */}
-            {isAuthenticated && (
-              <ErrorBoundary feature="NotificationCenter">
-                <NotificationCenter />
+            {/* One bell everywhere: personal notifications on the site, the
+                current business's in the console (real API + live socket). */}
+            {isAuthenticated && !pathname.startsWith('/console') && (
+              <ErrorBoundary feature="NotificationBell">
+                <NotificationBell />
               </ErrorBoundary>
             )}
             {isAuthenticated && pathname.startsWith('/console') && (
