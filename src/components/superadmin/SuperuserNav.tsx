@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { BookOpen, Building2, ClipboardList, Coins, Gauge, ShieldCheck } from 'lucide-react'
+import { ArrowDownToLine, BookOpen, Building2, ClipboardList, Coins, Gauge, ShieldCheck, Wallet } from 'lucide-react'
 import { cn } from '@/utils'
 import { useAuthStore, useRbacStore } from '@/stores'
 import { isPlatformSuperuser } from '@/lib/platform-admin-access'
@@ -16,6 +16,8 @@ const LINKS = [
   { href: '/console/platform/requests', key: 'requests', icon: ClipboardList },
   { href: '/console/platform/menu-templates', key: 'menuTemplates', icon: BookOpen },
   { href: '/console/platform/currencies', key: 'currencies', icon: Coins },
+  { href: '/console/platform/wallets', key: 'wallets', icon: Wallet },
+  { href: '/console/platform/topups', key: 'topups', icon: ArrowDownToLine },
 ] as const
 
 /** Sidebar section shown to platform superusers only. */

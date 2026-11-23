@@ -19,6 +19,8 @@ import { useCartStore, useCartHasHydrated, useBranchStore, useAuthStore, useDine
 import { useCreateOrder, useCreatePaymentIntent, useCheckServiceability } from '@/hooks'
 import { cn } from '@/utils'
 import { useMoney } from '@/hooks/use-money'
+import { useQuery } from '@tanstack/react-query'
+import { balanceIn, walletService } from '@/services/wallet.service'
 import { orderService } from '@/services/order.service'
 import { StripePaymentForm } from '@/components/checkout/StripePaymentForm'
 import { AddressPicker, DeliveryInfoCard, type AddressPickerValue } from '@/components/address'
@@ -208,6 +210,17 @@ function CheckoutContent() {
   // Everything in the visitor's currency; the order is charged in branchCurrency.
   const summary = money.cartSummary(items, { subtotal, total, discount: discountAmount, tax, serviceCharge }, branchCurrency)
   const formatCurrency = (amount: number | string | null | undefined, currency?: string) => money.format(amount, currency || branchCurrency)
+  // Wallet: the order is charged in branchCurrency, so that balance must cover it.
+  const tWallet = useTranslations('wallet')
+  const walletOffered = paymentMethodOptions.some((m) => m.wireMethod === 'wallet')
+  const { data: walletAccounts } = useQuery({
+    queryKey: ['wallet', 'mine'],
+    queryFn: () => walletService.mine(),
+    enabled: walletOffered,
+  })
+  const walletBalance = balanceIn(walletAccounts, branchCurrency)
+  const walletInsufficient = walletBalance < total
+  const walletBalanceLabel = money.formatIn(walletBalance, branchCurrency)
 
   const hasDeliveryAddress =
     !!selectedOrderOption?.requiresDeliveryAddress &&
@@ -593,13 +606,14 @@ function CheckoutContent() {
                             <button
                               key={method.wireMethod}
                               type="button"
+                              disabled={method.wireMethod === 'wallet' && walletInsufficient}
                               onClick={() => {
                                 setPaymentMethod(method.wireMethod)
                                 setClientSecret(null)
                                 setPaymentError(null)
                               }}
                               className={cn(
-                                'flex items-center gap-4 w-full p-4 rounded-xl border-2 text-start transition-all',
+                                'flex items-center gap-4 w-full p-4 rounded-xl border-2 text-start transition-all disabled:cursor-not-allowed disabled:opacity-60',
                                 paymentMethod === method.wireMethod
                                   ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)]'
                                   : 'border-[var(--border)] hover:border-[var(--accent-border)]/50',
@@ -610,7 +624,15 @@ function CheckoutContent() {
                               </div>
                               <div className="flex-1">
                                 <p className={cn('text-sm font-medium', paymentMethod === method.wireMethod ? 'text-[var(--accent-text)]' : 'text-[var(--fg)]')}>{method.label}</p>
-                                {method.desc ? <p className="text-xs text-[var(--fg-muted)]">{method.desc}</p> : null}
+                                {method.wireMethod === 'wallet' ? (
+                                  <p className={cn('text-xs', walletInsufficient ? 'text-[var(--danger-text)]' : 'text-[var(--fg-muted)]')}>
+                                    {walletInsufficient
+                                      ? tWallet('checkoutInsufficient', { amount: walletBalanceLabel })
+                                      : tWallet('checkoutBalance', { amount: walletBalanceLabel })}
+                                  </p>
+                                ) : method.desc ? (
+                                  <p className="text-xs text-[var(--fg-muted)]">{method.desc}</p>
+                                ) : null}
                               </div>
                               <div className={cn('h-4 w-4 rounded-full border-2 transition-all', paymentMethod === method.wireMethod ? 'border-[var(--accent-border)] bg-[var(--accent)]' : 'border-[var(--border-strong)]')}>
                                 {paymentMethod === method.wireMethod && <div className="h-full w-full rounded-full bg-[var(--card)] scale-50"/>}

@@ -984,6 +984,7 @@ export const DASHBOARD_MODULE: Module = {
     { href: '/dashboard/favorites', label: 'Favorites', icon: 'Heart' },
     { href: '/dashboard/addresses', label: 'Addresses', icon: 'MapPin' },
     { href: '/dashboard/reservations', label: 'Reservations', icon: 'Calendar' },
+    { href: '/dashboard/wallet', label: 'Wallet', icon: 'Wallet' },
     { href: '/dashboard/settings', label: 'Settings', icon: 'Settings' },
   ],
   defaultFeatureFlags: {},

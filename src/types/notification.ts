@@ -55,6 +55,10 @@ export type RichNotificationType =
   | 'business_request_approved'
   | 'business_request_rejected'
   | 'password_changed'
+  | 'wallet_payment'
+  | 'wallet_refund'
+  | 'wallet_topup'
+  | 'wallet_adjustment'
 
 export interface NotificationScope {
   tenantId: string

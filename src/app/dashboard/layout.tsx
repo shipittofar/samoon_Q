@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  LayoutDashboard, Package, Heart, MapPin, Calendar, Settings,
+  LayoutDashboard, Package, Heart, MapPin, Calendar, Settings, Wallet,
   User, LogOut, ChevronRight, Monitor, type LucideIcon
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -26,6 +26,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   MapPin,
   Calendar,
   Settings,
+  Wallet,
 }
 
 // Maps DASHBOARD_MODULE.navItems (src/modules/registry.ts) hrefs to `dashboard`
@@ -38,6 +39,7 @@ const NAV_LABEL_KEYS: Record<string, string> = {
   '/dashboard/favorites': 'favorites',
   '/dashboard/addresses': 'addresses',
   '/dashboard/reservations': 'reservations',
+  '/dashboard/wallet': 'wallet',
   '/dashboard/settings': 'settings',
 }
 
