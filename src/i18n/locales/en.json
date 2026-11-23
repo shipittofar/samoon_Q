@@ -6124,6 +6124,7 @@
       "businesses": "All businesses",
       "requests": "Business requests",
       "menuTemplates": "Ready-made menus",
+      "currencies": "Currencies & rates",
       "platformPanel": "Platform panel",
       "registerBusiness": "Register a business"
     },
@@ -6322,6 +6323,36 @@
         "approved": "Approved",
         "rejected": "Not approved"
       }
+    }
+  },
+  "currencyDisplay": {
+    "label": "Currency",
+    "businessCurrency": "Business currency",
+    "chargedNote": "Charged in {currency}: {amount}",
+    "approxNote": "Prices shown in {currency} are approximate; you pay in the business's currency.",
+    "admin": {
+      "title": "Currencies & exchange rates",
+      "subtitle": "Enter each currency's rate in toman. A currency needs a rate before it can be enabled. Prices are converted with these rates for display; payment is always in the business's currency.",
+      "code": "Code",
+      "name": "Name",
+      "symbol": "Symbol",
+      "rate": "Rate (toman per unit)",
+      "rounding": "Round to",
+      "decimals": "Decimals",
+      "enabled": "Enabled",
+      "base": "Base currency",
+      "save": "Save",
+      "saved": "Saved",
+      "reason": "Reason for the rate change (optional)",
+      "add": "Add currency",
+      "history": "Rate history",
+      "noHistory": "No changes yet.",
+      "lastUpdated": "Rate last updated: {date}",
+      "noRate": "No rate"
+    },
+    "item": {
+      "otherPrices": "Prices in other currencies (optional)",
+      "otherPricesHint": "Left empty, the price is converted with the current rate."
     }
   }
 }

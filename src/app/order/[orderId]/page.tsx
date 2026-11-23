@@ -12,12 +12,15 @@ import { Badge } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useOrder } from '@/hooks'
-import { formatCurrency, formatDate, formatTime } from '@/utils'
+import { formatDate, formatTime } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
 import { getOrderStatusBadgeVariant, getOrderStatusLabelKey, isTerminalOrderStatus } from '@/lib/order-status'
 import type { OrderStatus } from '@/types'
 
 export default function OrderPage({ params }: { params: Promise<{ orderId: string }> }) {
   const t = useTranslations('orderDetail')
+  const tCurrency = useTranslations('currencyDisplay')
+  const money = useMoney()
   const tOrder = useTranslations('order')
   const { orderId } = use(params)
   const { data: order, isLoading } = useOrder(orderId)
@@ -102,12 +105,12 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                             ×{item.quantity}
                             {item.quantity > 1 && item.unit_price && (
                               <span className="ml-2">
-                                {t('unitPriceEach', { price: formatCurrency(item.unit_price) })}
+                                {t('unitPriceEach', { price: money.formatIn(item.unit_price, order?.currency) })}
                               </span>
                             )}
                           </p>
                           </div>
-                        <span className="font-semibold text-[var(--fg)] shrink-0">{formatCurrency(item.total_price)}</span>
+                        <span className="font-semibold text-[var(--fg)] shrink-0">{money.formatIn(item.total_price, order?.currency)}</span>
                       </div>
                     ))}
                   </div>
@@ -122,13 +125,18 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
               <Card>
                 <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderSummary')}</h2>
                 <div className="space-y-2.5 text-sm">
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('subtotal')}</span><span>{formatCurrency(order.subtotal || 0)}</span></div>
-                  {order.discount_amount > 0 && <div className="flex justify-between text-[var(--success-text)]"><span>{t('discount')}</span><span>−{formatCurrency(order.discount_amount)}</span></div>}
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('tax')}</span><span>{formatCurrency(order.tax || 0)}</span></div>
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('service')}</span><span>{formatCurrency(order.service_charge || 0)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('subtotal')}</span><span>{money.formatIn(order.subtotal || 0, order?.currency)}</span></div>
+                  {order.discount_amount > 0 && <div className="flex justify-between text-[var(--success-text)]"><span>{t('discount')}</span><span>−{money.formatIn(order.discount_amount, order?.currency)}</span></div>}
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('tax')}</span><span>{money.formatIn(order.tax || 0, order?.currency)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('service')}</span><span>{money.formatIn(order.service_charge || 0, order?.currency)}</span></div>
                   <div className="flex justify-between font-bold text-[var(--fg)] text-base pt-2 border-t border-[var(--border)]">
-                    <span>{t('total')}</span><span>{formatCurrency(order.total)}</span>
+                    <span>{t('total')}</span><span>{money.formatIn(order.total, order?.currency)}</span>
                   </div>
+                  {order.display_currency && order.display_total != null && (
+                    <p className="text-xs text-[var(--fg-muted)]">
+                      ≈ {money.formatIn(order.display_total, order.display_currency)} · {tCurrency('chargedNote', { currency: order.currency ?? '', amount: money.formatIn(order.total, order.currency) })}
+                    </p>
+                  )}
                   <Button className="w-full"size="sm"variant="secondary">{t('printReceipt')}</Button>
                 </div>
               </Card>

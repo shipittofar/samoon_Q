@@ -60,6 +60,8 @@ export function normalizeMenuItem(raw: MenuItemWire): MenuItem {
     category_id,
     is_active: raw.is_active ?? true,
     price: parseDecimal(raw.price),
+    // Django sends "0.00": as a string it is truthy and showed "0.00% OFF".
+    discount: raw.discount != null ? parseDecimal(raw.discount) : undefined,
     discounted_price:
       raw.discounted_price != null ? parseDecimal(raw.discounted_price) : undefined,
     image,

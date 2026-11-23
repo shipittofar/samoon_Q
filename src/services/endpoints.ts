@@ -219,6 +219,13 @@ export const ENDPOINTS = {
     MEDIA_UPLOAD: (tenantId: string) => `/tenants/${tenantId}/website/media/`,
   },
 
+  // Currencies and superuser-managed exchange rates (backend currencies app).
+  CURRENCIES: {
+    LIST: '/currencies/',
+    DETAIL: (code: string) => `/currencies/${code}/`,
+    HISTORY: '/currencies/history/',
+  },
+
   // Platform-level overrides of Platform Configuration fields (src/config).
   PLATFORM_CONFIG: {
     OVERRIDES: '/platform/config/',

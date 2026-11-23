@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { Divider } from '@/components/ui'
-import { formatCurrency } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
 import { getActiveCartContext, isActiveCartCheckoutEnabled, resolveCartMenuUrl } from '@/lib/active-cart'
 import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
@@ -23,6 +23,8 @@ import type { CartItem } from '@/types'
 function CartItemRow({ item }: { item: CartItem }) {
   const t = useTranslations('cart')
   const { updateQuantity, removeItem } = useCartStore()
+  const money = useMoney()
+  const lineMoney = money.cartLine(item)
   return (
     <motion.div
       layout
@@ -54,7 +56,7 @@ function CartItemRow({ item }: { item: CartItem }) {
           />
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-[var(--fg)]">
-              {formatCurrency(item.total_price)}
+              {money.formatIn(lineMoney.amount, lineMoney.currency)}
             </span>
             <button
               onClick={() => removeItem(item.id)}
@@ -96,6 +98,10 @@ export function CartDrawer() {
   const tax = getTax()
   const serviceCharge = getServiceCharge()
   const total = getTotal()
+  const money = useMoney()
+  const tCurrency = useTranslations('currencyDisplay')
+  // Lines, subtotal, tax… in the visitor's currency; `charged` is the real amount.
+  const summary = money.cartSummary(items, { subtotal, total, discount: discountAmount, tax, serviceCharge })
 
   const handleApplyCode = () => {
     if (!codeInput.trim()) return
@@ -105,7 +111,7 @@ export function CartDrawer() {
         onSuccess: (res) => {
           if (res.valid) {
             setDiscount(codeInput.trim(), res.discount_amount)
-            toast.success(tNotifications('discountApplied', { amount: formatCurrency(res.discount_amount) }))
+            toast.success(tNotifications('discountApplied', { amount: money.format(res.discount_amount, summary.sourceCurrency) }))
           } else {
             toast.error(res.message || t('invalidCode'))
           }
@@ -180,27 +186,32 @@ export function CartDrawer() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-[var(--fg-muted)]">
                   <span>{t('subtotal')}</span>
-                  <span>{formatCurrency(subtotal)}</span>
+                  <span>{summary.subtotal}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-[var(--success-text)]">
                     <span>{t('discountLabel', { code: discountCode })}</span>
-                    <span>−{formatCurrency(discountAmount)}</span>
+                    <span>−{summary.discount}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[var(--fg-muted)]">
                   <span>{t('tax')}</span>
-                  <span>{formatCurrency(tax)}</span>
+                  <span>{summary.tax}</span>
                 </div>
                 <div className="flex justify-between text-[var(--fg-muted)]">
                   <span>{t('serviceCharge')}</span>
-                  <span>{formatCurrency(serviceCharge)}</span>
+                  <span>{summary.serviceCharge}</span>
                 </div>
                 <Divider />
                 <div className="flex justify-between font-bold text-[var(--fg)] text-base">
                   <span>{t('total')}</span>
-                  <span>{formatCurrency(total)}</span>
+                  <span>{summary.total}</span>
                 </div>
+                {summary.converted && (
+                  <p className="text-xs text-[var(--fg-muted)]">
+                    {tCurrency('chargedNote', { currency: summary.sourceCurrency, amount: summary.charged })}
+                  </p>
+                )}
               </div>
 
               {/* Checkout CTA */}
@@ -242,7 +253,8 @@ export function CartDrawer() {
 // ── Floating Cart Button ───────────────────────────────────────────────────────
 export function FloatingCart() {
   const t = useTranslations('cart')
-  const { setOpen, getTotal } = useCartStore()
+  const { setOpen, getTotal, getSubtotal, items: floatingItems } = useCartStore()
+  const floatingMoney = useMoney()
   const count = useCartItemCount()
 
   return (
@@ -266,7 +278,7 @@ export function FloatingCart() {
             </div>
             <span className="font-medium text-sm">{t('viewCart')}</span>
           </div>
-          <span className="font-bold text-sm md:ms-2">{formatCurrency(getTotal())}</span>
+          <span className="font-bold text-sm md:ms-2">{floatingMoney.cartSummary(floatingItems, { subtotal: getSubtotal(), total: getTotal() }).total}</span>
         </motion.button>
       )}
     </AnimatePresence>

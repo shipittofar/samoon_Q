@@ -5,7 +5,8 @@ import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Heart, MapPin, Store, Clock, Star, Zap } from 'lucide-react'
 import { useFavoriteAction } from '@/hooks'
-import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
+import { cn } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
 import { Badge } from '@/components/ui'
 import { MenuItemCartControls } from '@/components/menu/MenuItemCartControls'
 import type { UserFavorite } from '@/types/favorites'
@@ -23,7 +24,8 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
   const { menu_item: item, tenant, branch } = favorite
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
 
-  const discountedPrice = item.discount ? getDiscountedPrice(item.price, item.discount) : item.price
+  const money = useMoney()
+  const discountedLabel = money.formatItem(item, { discounted: true })
   const hasDiscount = !!item.discount && item.discount > 0
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -114,12 +116,12 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
         <div className="mt-auto space-y-3">
           <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
             <span className="text-2xl font-bold text-[var(--accent-text)] leading-none">
-              {formatCurrency(discountedPrice)}
+              {discountedLabel}
             </span>
             {hasDiscount && (
               <>
                 <span className="text-sm text-[var(--fg-subtle)] line-through pb-0.5">
-                  {formatCurrency(item.price)}
+                  {money.formatItem(item)}
                 </span>
                 <Badge variant="danger"className="text-[10px] mb-0.5">
                   {tMenu('discount', { percent: item.discount! })}
@@ -133,7 +135,7 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
             onOpenDetail={onOpenDetail}
             disabled={!item.available}
             layout="full"
-            addLabel={tDashboard('favoriteQuickOrder', { price: formatCurrency(discountedPrice) })}
+            addLabel={tDashboard('favoriteQuickOrder', { price: discountedLabel })}
             addIcon={<Zap className="h-4 w-4"aria-hidden="true"/>}
             orderingContext={{
               tenantId: tenant.id,

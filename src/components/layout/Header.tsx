@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { NotificationBell } from '@/components/layout/NotificationBell'
+import { CurrencySwitcher } from '@/components/layout/CurrencySwitcher'
 import { BranchSelector } from '@/components/common/BranchSelector'
 import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
@@ -222,6 +223,9 @@ export function Header({ overlay = false }: HeaderProps) {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Display currency (site only; the console shows business currency). */}
+            {!pathname.startsWith('/console') && <CurrencySwitcher className="hidden sm:block" />}
 
             {/* Notifications */}
             {/* One bell everywhere: personal notifications on the site, the

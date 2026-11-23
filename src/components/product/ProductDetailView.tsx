@@ -25,7 +25,8 @@ import { StickyPurchaseBar } from '@/components/product/StickyPurchaseBar'
 import { useProductDetailState } from '@/components/product/useProductDetailState'
 import { ProductDetailSectionTabs, type ProductDetailTab } from '@/components/product/ProductDetailSectionTabs'
 import { buildRatingBreakdownFromReviews, getAssignedExtraGroups, formatNutritionValue } from '@/lib/product-detail-utils'
-import { formatCurrency, getDiscountedPrice } from '@/utils'
+import { getDiscountedPrice } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
 import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import { canOrderFromTenant } from '@/lib/tenant-state'
 import { useTenantVertical } from '@/hooks/verticals'
@@ -108,6 +109,10 @@ export function ProductDetailView({
   const extrasTotal = selectedExtras.reduce((s, e) => s + e.price, 0)
   const unitPrice = discountedPrice + extrasTotal
   const totalPrice = unitPrice * quantity
+  const money = useMoney()
+  // Shown in the visitor's currency, computed like the cart line will be.
+  const totalMoney = money.cartLine({ menu_item: item, extras: selectedExtras, unit_price: unitPrice, quantity })
+  const totalPriceLabel = money.formatIn(totalMoney.amount, totalMoney.currency)
   const assignedGroups = getAssignedExtraGroups(extraGroups, item.extra_group_ids)
   const ratingBreakdown = reviewsData?.results.length
     ? buildRatingBreakdownFromReviews(reviewsData.results)
@@ -266,7 +271,8 @@ export function ProductDetailView({
                 discountPercent={item.discount}
                 totalPrice={totalPrice}
                 showTotal={quantity > 1 || selectedExtras.length > 0}
-                totalLabel={t('totalLabel', { price: formatCurrency(totalPrice) })}
+                totalLabel={t('totalLabel', { price: totalPriceLabel })}
+                labels={{ price: money.formatItem(item), discounted: money.formatItem(item, { discounted: true }) }}
                 formatPrice={(formatted) => priceLabel(item, formatted)}
               />
 
@@ -468,7 +474,7 @@ export function ProductDetailView({
         available={item.available}
         loading={addingToCart}
         added={addedToCart}
-        ctaLabel={t('addToCartWithPrice', { price: formatCurrency(totalPrice) })}
+        ctaLabel={t('addToCartWithPrice', { price: totalPriceLabel })}
         unavailableLabel={t('unavailable')}
         addedLabel={t('added')}
         decreaseLabel={t('decreaseQuantity')}

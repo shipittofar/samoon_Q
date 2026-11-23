@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { parseDecimal } from './decimal'
+import { formatMoney } from '@/lib/currency'
 
 export { parseDecimal } from './decimal'
 
@@ -8,17 +9,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Money in its own currency (no conversion). Default: the platform base
+ * currency (Iranian toman), in the page language. Customer-facing prices
+ * should use useMoney() instead, which also applies the visitor's chosen
+ * display currency.
+ */
 export function formatCurrency(
   amount: string | number | null | undefined,
-  currency = 'USD',
-  locale = 'en-US',
+  currency = 'IRT',
+  locale?: string,
 ): string {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(parseDecimal(amount))
+  const pageLocale =
+    locale ?? (typeof document !== 'undefined' && document.documentElement.lang ? document.documentElement.lang : 'en')
+  return formatMoney(parseDecimal(amount), currency || 'IRT', pageLocale)
 }
 
 export function formatDate(date: string | Date, locale = 'en-US'): string {

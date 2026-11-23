@@ -79,6 +79,7 @@ export function ProductDetailModifiers({
                     key={extra.id}
                     name={extra.name}
                     price={extra.price}
+                    currency={item.currency}
                     selected={selected}
                     disabled={!extra.available}
                     selectionType={group.selection_type}
@@ -104,6 +105,7 @@ export function ProductDetailModifiers({
                   key={extra.id}
                   name={extra.name}
                   price={extra.price}
+                  currency={item.currency}
                   selected={selected}
                   disabled={!extra.available}
                   onClick={() => onToggleExtra(extra)}

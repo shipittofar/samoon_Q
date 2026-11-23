@@ -17,7 +17,8 @@ import { Input } from '@/components/ui/Input'
 import { Divider } from '@/components/ui'
 import { useCartStore, useCartHasHydrated, useBranchStore, useAuthStore, useDineInStore } from '@/stores'
 import { useCreateOrder, useCreatePaymentIntent, useCheckServiceability } from '@/hooks'
-import { formatCurrency, cn } from '@/utils'
+import { cn } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
 import { orderService } from '@/services/order.service'
 import { StripePaymentForm } from '@/components/checkout/StripePaymentForm'
 import { AddressPicker, DeliveryInfoCard, type AddressPickerValue } from '@/components/address'
@@ -202,6 +203,11 @@ function CheckoutContent() {
     cartContext?.currency ?? (activeBranch?.id === cartBranchId ? activeBranch.currency : undefined),
   )
   const minimumOrderAmount = resolveEffectiveMinimumOrder(serviceability, checkoutConfig)
+  const money = useMoney()
+  const tCurrency = useTranslations('currencyDisplay')
+  // Everything in the visitor's currency; the order is charged in branchCurrency.
+  const summary = money.cartSummary(items, { subtotal, total, discount: discountAmount, tax, serviceCharge }, branchCurrency)
+  const formatCurrency = (amount: number | string | null | undefined, currency?: string) => money.format(amount, currency || branchCurrency)
 
   const hasDeliveryAddress =
     !!selectedOrderOption?.requiresDeliveryAddress &&
@@ -364,6 +370,8 @@ function CheckoutContent() {
           }
         : {}),
       discount_code: discountCode || undefined,
+      // Recorded on the order with the rates used (it is charged in branchCurrency).
+      ...(summary.converted ? { display_currency: summary.currency } : {}),
       ...(paymentIntentId ? { payment_intent_id: paymentIntentId } : {}),
     }
 
@@ -443,7 +451,7 @@ function CheckoutContent() {
             </Link>
             <div>
               <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('title')}</h1>
-              <p className="text-sm text-[var(--fg-muted)]">{t('itemsCountTotal', { count: items.length, total: formatCurrency(total, branchCurrency) })}</p>
+              <p className="text-sm text-[var(--fg-muted)]">{t('itemsCountTotal', { count: items.length, total: summary.total })}</p>
             </div>
           </div>
 
@@ -662,8 +670,8 @@ function CheckoutContent() {
                             leftIcon={<Lock className="h-4 w-4"/>}
                           >
                             {paymentMethod === 'card'
-                              ? isCreatingIntent ? t('preparingPayment') : t('payWithCard', { total: formatCurrency(total, branchCurrency) })
-                              : isPending ? t('placingOrder') : t('placeOrderWithTotal', { total: formatCurrency(total, branchCurrency) })}
+                              ? isCreatingIntent ? t('preparingPayment') : t('payWithCard', { total: summary.total })
+                              : isPending ? t('placingOrder') : t('placeOrderWithTotal', { total: summary.total })}
                           </Button>
                         </div>
                       </form>
@@ -689,7 +697,7 @@ function CheckoutContent() {
                         {item.extras.length > 0 && <p className="text-xs text-[var(--fg-muted)]">+{item.extras.map(e => e.name).join(', ')}</p>}
                         <p className="text-xs text-[var(--fg-muted)]">×{item.quantity}</p>
                       </div>
-                      <span className="text-sm font-medium text-[var(--fg)] shrink-0">{formatCurrency(item.total_price, branchCurrency)}</span>
+                      <span className="text-sm font-medium text-[var(--fg)] shrink-0">{summary.lineLabel(items.indexOf(item))}</span>
                     </div>
                   ))}
                 </div>
@@ -697,19 +705,24 @@ function CheckoutContent() {
                 <Divider className="my-4"/>
 
                 <div className="space-y-2.5 text-sm">
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('subtotal')}</span><span>{formatCurrency(subtotal, branchCurrency)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('subtotal')}</span><span>{summary.subtotal}</span></div>
                   {belowMinimum && minimumOrderAmount != null && (
                     <p className="text-[var(--warning-text)] text-xs"role="alert">
                       {tAddressServiceability('minimumOrder', { amount: formatCurrency(minimumOrderAmount, branchCurrency) })}
                     </p>
                   )}
-                  {discountAmount > 0 && <div className="flex justify-between text-[var(--success-text)]"><span>{tCart('discount')}</span><span>−{formatCurrency(discountAmount, branchCurrency)}</span></div>}
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('tax')}</span><span>{formatCurrency(tax, branchCurrency)}</span></div>
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('serviceCharge')}</span><span>{formatCurrency(serviceCharge, branchCurrency)}</span></div>
+                  {discountAmount > 0 && <div className="flex justify-between text-[var(--success-text)]"><span>{tCart('discount')}</span><span>−{summary.discount}</span></div>}
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('tax')}</span><span>{summary.tax}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('serviceCharge')}</span><span>{summary.serviceCharge}</span></div>
                   <Divider />
                   <div className="flex justify-between font-bold text-[var(--fg)] text-base">
-                    <span>{tCart('total')}</span><span>{formatCurrency(total, branchCurrency)}</span>
+                    <span>{tCart('total')}</span><span>{summary.total}</span>
                   </div>
+                  {summary.converted && (
+                    <p className="text-xs text-[var(--fg-muted)]">
+                      {tCurrency('chargedNote', { currency: summary.sourceCurrency, amount: summary.charged })}
+                    </p>
+                  )}
                 </div>
 
                 <div className="mt-4 flex items-center gap-2 text-xs text-[var(--fg-muted)] bg-[var(--card-hover)] rounded-xl p-3">

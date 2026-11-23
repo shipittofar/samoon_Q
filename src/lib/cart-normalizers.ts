@@ -55,6 +55,14 @@ export function buildMenuItemStub(
     extras: Array.isArray(partial.extras)
       ? (partial.extras as MenuItemWire['extras'])
       : undefined,
+    // Kept so a restored cart shows the same prices as the menu (display
+    // currency, the owner's own per-currency prices, discount).
+    currency: readString(partial, 'currency'),
+    prices:
+      partial.prices && typeof partial.prices === 'object' && !Array.isArray(partial.prices)
+        ? (partial.prices as Record<string, string | number>)
+        : undefined,
+    discount: readNumber(partial, 'discount'),
   }
 
   return normalizeMenuItem(wire)

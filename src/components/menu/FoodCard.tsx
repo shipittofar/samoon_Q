@@ -6,7 +6,8 @@ import { useTranslations } from 'next-intl'
 import { Heart, Clock, Flame, Star } from 'lucide-react'
 import { useRecentlyViewedStore, useBranchStore, useTenantStore } from '@/stores'
 import { useFavoriteAction } from '@/hooks'
-import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
+import { cn } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
 import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import { canOrderFromTenant } from '@/lib/tenant-state'
 import { Badge } from '@/components/ui'
@@ -38,7 +39,11 @@ export function FoodCard({ item, onOpenDetail, compact = false, className, highl
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
 
-  const discountedPrice = item.discount ? getDiscountedPrice(item.price, item.discount) : item.price
+  const money = useMoney()
+  const hasDiscount = Number(item.discount ?? 0) > 0
+  // In the visitor's currency (the owner's own price for it when set).
+  const discountedLabel = money.formatItem(item, { discounted: true })
+  const fullLabel = money.formatItem(item)
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     handleFavorite(e)
@@ -83,9 +88,9 @@ export function FoodCard({ item, onOpenDetail, compact = false, className, highl
           <p className="text-xs text-[var(--fg-muted)] line-clamp-2 mt-0.5">{item.description}</p>
           <div className="flex items-center justify-between mt-2">
             <div>
-              <span className="text-sm font-bold text-[var(--fg)]">{formatCurrency(discountedPrice)}</span>
-              {item.discount && (
-                <span className="text-xs text-[var(--fg-subtle)] line-through ms-1">{formatCurrency(item.price)}</span>
+              <span className="text-sm font-bold text-[var(--fg)]">{discountedLabel}</span>
+              {hasDiscount && (
+                <span className="text-xs text-[var(--fg-subtle)] line-through ms-1">{fullLabel}</span>
               )}
             </div>
             {orderingEnabled && (
@@ -136,7 +141,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className, highl
           {item.is_new && <Badge variant="info"className="shadow-sm text-[10px]">{t('new')}</Badge>}
           {item.is_popular && <Badge variant="warning"className="shadow-sm text-[10px]">{t('popular')}</Badge>}
           {item.is_featured && <Badge variant="default"className="shadow-sm text-[10px]">{t('featured')}</Badge>}
-          {item.discount && (
+          {hasDiscount && (
             <Badge variant="danger"className="shadow-sm text-[10px]">{t('discount', { percent: item.discount })}</Badge>
           )}
         </div>
@@ -207,10 +212,10 @@ export function FoodCard({ item, onOpenDetail, compact = false, className, highl
         {/* Price + Add */}
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-lg font-bold text-[var(--fg)]">{priceLabel(item, formatCurrency(discountedPrice))}</span>
-            {item.discount && (
+            <span className="text-lg font-bold text-[var(--fg)]">{priceLabel(item, discountedLabel)}</span>
+            {hasDiscount && (
               <span className="text-xs text-[var(--fg-subtle)] line-through ms-1.5">
-                {formatCurrency(item.price)}
+                {fullLabel}
               </span>
             )}
           </div>

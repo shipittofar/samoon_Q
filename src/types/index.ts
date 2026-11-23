@@ -232,6 +232,10 @@ export interface MenuItem {
   slug: string
   description: string
   price: number
+  /** Currency `price` is in — the branch's (e.g. IRT). */
+  currency?: string
+  /** Owner's own prices in other currencies, e.g. { USD: "3.00" }; they win over conversion. */
+  prices?: Record<string, string | number>
   discount?: number
   discounted_price?: number
   image: string
@@ -407,6 +411,12 @@ export interface Order {
   tax: number
   service_charge: number
   total: number
+  /** Currency the order is charged in (the branch's). */
+  currency?: string
+  /** Currency the customer viewed prices in, and the total they saw (rates in exchange_rates). */
+  display_currency?: string
+  display_total?: string | number | null
+  exchange_rates?: Record<string, string>
   discount_code?: string
   notes?: string
   estimated_time?: number

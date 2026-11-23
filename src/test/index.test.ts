@@ -7,9 +7,13 @@ import { MOCK_MENU_ITEMS } from '@/lib/mock-data'
 // ── Utility Tests ─────────────────────────────────────────────────────────────
 describe('formatCurrency', () => {
   it('formats USD correctly', () => {
-    expect(formatCurrency(12.5)).toBe('$12.50')
-    expect(formatCurrency(0)).toBe('$0.00')
-    expect(formatCurrency(1000)).toBe('$1,000.00')
+    expect(formatCurrency(12.5, 'USD', 'en')).toBe('$12.50')
+    expect(formatCurrency(0, 'USD', 'en')).toBe('$0.00')
+    expect(formatCurrency(1000, 'USD', 'en')).toBe('$1,000.00')
+  })
+  it('defaults to toman, the platform base currency', () => {
+    expect(formatCurrency(200000, undefined, 'en')).toBe('200,000 Toman')
+    expect(formatCurrency(200000, undefined, 'fa')).toBe('۲۰۰٬۰۰۰ تومان')
   })
   it('handles other currencies', () => {
     expect(formatCurrency(10, 'EUR', 'de-DE')).toContain('10')

@@ -35,6 +35,8 @@ export interface MenuItemFormInput {
   item_kind?: CatalogItemKind | ''
   /** Phase 1 — raw vertical attribute inputs, serialized on submit. */
   attributes?: CatalogAttributeFormValues
+  /** Owner's own prices in other currencies (code -> amount text; '' = convert by rate). */
+  prices?: Record<string, string>
 }
 
 /**
@@ -58,6 +60,8 @@ export interface MenuItemWriteRequest {
   /** Phase 1 — sent only for non-food verticals (see menuItemFormToWriteRequest). */
   item_kind?: CatalogItemKind
   attributes?: CatalogItemAttributes
+  /** Replaces the item's per-currency prices; omitted = unchanged. */
+  prices?: Record<string, string>
 }
 
 /**
@@ -96,6 +100,12 @@ export function menuItemFormToWriteRequest(
     request.image_asset_id = null
   }
 
+  if (form.prices) {
+    request.prices = Object.fromEntries(
+      Object.entries(form.prices).filter(([, v]) => v.trim() !== '').map(([k, v]) => [k, v.trim()]),
+    )
+  }
+
   if (vertical.family !== 'food') {
     const kind = effectiveItemKind(vertical, form.item_kind)
     request.item_kind = kind
@@ -128,5 +138,6 @@ export function menuItemToFormInput(item: MenuItem): MenuItemFormInput {
     tag_ids: item.tags?.map((tag) => tag.id) ?? [],
     item_kind: item.item_kind ?? '',
     attributes: attributesToFormValues(item.attributes),
+    prices: Object.fromEntries(Object.entries(item.prices ?? {}).map(([k, v]) => [k, String(v)])),
   }
 }

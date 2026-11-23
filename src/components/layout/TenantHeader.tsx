@@ -35,6 +35,7 @@ import {
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 import { UserMenuBusinessConsoleLink } from '@/components/layout/UserMenuBusinessConsoleLink'
 import { UserMenuPlatformLinks } from '@/components/layout/UserMenuPlatformLinks'
+import { CurrencySwitcher } from '@/components/layout/CurrencySwitcher'
 import { cn, buildPublicCTAs, buildCustomerJourney } from '@/utils'
 import { buildTenantNavigation, getBusinessTypeBadge } from '@/utils/navigation'
 import { resolveTenantImage } from '@/lib/tenant-branding'
@@ -263,6 +264,9 @@ export function TenantHeader() {
 
             {/* ── Actions ───────────────────────────────────────────────── */}
             <div className="flex items-center gap-1.5">
+
+              {/* Display currency for this menu's prices */}
+              <CurrencySwitcher className="hidden sm:block" />
 
               {/* Theme toggle */}
               <Button

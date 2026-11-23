@@ -94,8 +94,9 @@ describe('components/home/FeaturedSection.tsx — structure', () => {
   it('preserves "Handpicked" label (P9.5.7A: localized via home.handpicked)', () =>
     expect(src()).toContain("t('handpicked')"))
 
-  it('uses formatCurrency for prices', () =>
-    expect(src()).toContain('formatCurrency'))
+  // Prices go through useMoney (visitor's display currency, owner's explicit prices).
+  it('formats prices through useMoney', () =>
+    expect(src()).toContain('useMoney'))
 
   it('displays item rating', () =>
     expect(src()).toContain('rating'))

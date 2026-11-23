@@ -173,7 +173,8 @@ export function resolveInitialPaymentMethod(
 /** ISO 4217 currency for display/payment — branch field is authoritative. */
 export function resolveBranchCurrencyCode(currency?: string | null): string {
   const code = currency?.trim().toUpperCase()
-  return code && code.length === 3 ? code : 'USD'
+  // Unset: the platform base currency (Iranian toman), like the backend default.
+  return code && code.length >= 3 && code.length <= 5 ? code : 'IRT'
 }
 
 /** Stripe/API currency codes are lowercase ISO 4217. */

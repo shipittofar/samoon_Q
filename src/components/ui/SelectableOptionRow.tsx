@@ -1,6 +1,7 @@
 'use client'
 
-import { cn, formatCurrency } from '@/utils'
+import { cn } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
 
 export interface SelectableOptionRowProps {
   name: string
@@ -18,7 +19,9 @@ export function SelectableOptionRow({
   disabled = false,
   selectionType = 'multiple',
   onClick,
-}: SelectableOptionRowProps) {
+  currency,
+}: SelectableOptionRowProps & { currency?: string }) {
+  const money = useMoney()
   return (
     <button
       type="button"
@@ -53,7 +56,7 @@ export function SelectableOptionRow({
         </span>
         {name}
       </span>
-      {price != null && price > 0 && <span className="font-medium">+{formatCurrency(price)}</span>}
+      {price != null && price > 0 && <span className="font-medium">+{money.format(price, currency)}</span>}
       {price === 0 && <span className="text-xs text-[var(--fg-muted)]">Included</span>}
     </button>
   )

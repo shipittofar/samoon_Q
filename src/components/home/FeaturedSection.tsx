@@ -6,13 +6,12 @@ import { useTranslations } from 'next-intl'
 import { ArrowRight, Star, Clock, ChevronRight } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
 import { useFeaturedItems } from '@/hooks'
-import { formatCurrency } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
 
 function FeaturedCard({ item }: { item: { id: string; name: string; image: string; category?: { name: string } | null; price: number; discount?: number; rating: number; preparation_time: number; is_popular?: boolean; is_featured?: boolean } }) {
   const t = useTranslations('home')
-  const displayPrice = item.discount
-    ? item.price * (1 - item.discount / 100)
-    : item.price
+  const money = useMoney()
+  const displayLabel = money.formatItem(item as { price: number; discount?: number; currency?: string; prices?: Record<string, string | number> }, { discounted: true })
 
   const badge = item.is_popular ? t('popular') : item.is_featured ? t('featured') : null
 
@@ -42,7 +41,7 @@ function FeaturedCard({ item }: { item: { id: string; name: string; image: strin
           {item.name}
         </h3>
         <div className="flex items-center justify-between">
-          <span className="font-bold text-[var(--fg)]">{formatCurrency(displayPrice)}</span>
+          <span className="font-bold text-[var(--fg)]">{displayLabel}</span>
           <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)]">
             <span className="flex items-center gap-0.5">
               <Star className="h-3 w-3 text-[var(--rating)] fill-[var(--rating)]"/>

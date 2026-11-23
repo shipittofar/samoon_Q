@@ -56,6 +56,8 @@ describe('menu normalizers', () => {
 
 describe('formatCurrency with decimal strings', () => {
   it('formats string decimal prices', () => {
-    expect(formatCurrency('12.5')).toBe('$12.50')
+    expect(formatCurrency('12.5', 'USD', 'en')).toBe('$12.50')
+    // Default: the platform base currency (toman, no decimals).
+    expect(formatCurrency('200000.00', undefined, 'en')).toBe('200,000 Toman')
   })
 })

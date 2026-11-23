@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
+import { useMoney } from '@/hooks/use-money'
+import { convertAmount } from '@/lib/currency'
 import { getTotalPages } from '@/utils/pagination'
 import { applyConsoleMenuClientFilters } from '@/lib/console-menu-client-filters'
 import { useConsoleMenuItems, useConsoleCategories, useConsoleCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useConsoleMenuTags, useSelectedBranch, useBranchState, useIsBranchReady, usePermission } from '@/hooks'
@@ -436,7 +438,7 @@ export default function AdminMenuPage() {
                           ) : null}
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-[var(--fg)]">{formatCurrency(item.price)}</span>
+                          <span className="font-bold text-[var(--fg)]">{formatCurrency(item.price, item.currency)}</span>
                           <div className="flex gap-1">
                             <Button variant="ghost"size="icon-sm"onClick={() => openEdit(item)} aria-label={t('editItemAria')}>
                               <Edit2 className="h-3.5 w-3.5"/>
@@ -618,8 +620,15 @@ function MenuItemFormFields({
   onCreateCategory?: () => void
 }) {
   const t = useTranslations('console')
+  const tCurrency = useTranslations('currencyDisplay.item')
   const { term } = useCatalogTerms(vertical)
   const isFood = vertical.family === 'food'
+  const money = useMoney()
+  const selectedBranch = useSelectedBranch() as { currency?: string } | null
+  // The branch prices in its own currency; the owner may also type prices
+  // for the other enabled currencies (empty = converted by the current rate).
+  const itemCurrency = (selectedBranch?.currency || money.base).toUpperCase()
+  const otherCurrencies = Object.values(money.table).filter((c) => c.enabled && c.code !== itemCurrency)
   const set = (field: Exclude<keyof MenuItemFormInput, 'image' | 'extra_group_ids' | 'item_kind' | 'attributes'>) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
@@ -664,7 +673,7 @@ function MenuItemFormFields({
             )}
           </div>
         </div>
-        <Input label={t('priceDollarLabel')} type="number"value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">$</span>} />
+        <Input label={`${t('priceDollarLabel').replace(/\s*\(\$\)|\$/g, '').trim()} (${itemCurrency})`} type="number"value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">{itemCurrency}</span>} />
         <Input label={t('discountPercentSignLabel')} type="number"value={form.discount} onChange={set('discount')} />
         {vertical.usesFoodFields && (
           <>
@@ -680,6 +689,29 @@ function MenuItemFormFields({
           attributes={form.attributes}
           onChange={(next) => onChange({ ...form, ...next })}
         />
+      )}
+      {otherCurrencies.length > 0 && (
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium text-[var(--fg)]">{tCurrency('otherPrices')}</legend>
+          <p className="text-xs text-[var(--fg-muted)]">{tCurrency('otherPricesHint')}</p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {otherCurrencies.map((c) => (
+              <Input
+                key={c.code}
+                label={c.code}
+                type="number"
+                min={0}
+                step="any"
+                dir="ltr"
+                placeholder={
+                  form.price ? String(convertAmount(parseFloat(form.price) || 0, itemCurrency, c.code, money.table) ?? '') : ''
+                }
+                value={form.prices?.[c.code] ?? ''}
+                onChange={(e) => onChange({ ...form, prices: { ...(form.prices ?? {}), [c.code]: e.target.value } })}
+              />
+            ))}
+          </div>
+        </fieldset>
       )}
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
       <MenuTagMultiSelect
