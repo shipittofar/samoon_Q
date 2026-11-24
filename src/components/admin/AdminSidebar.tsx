@@ -48,6 +48,7 @@ import {
   Zap,
   Plus,
   ClipboardList,
+  Landmark,
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useAdminModuleNav, useLogout, usePermissions } from '@/hooks'
@@ -90,6 +91,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   QrCode,
   Zap,
   ClipboardList,
+  Landmark,
 }
 
 // ── Quick Actions ─────────────────────────────────────────────────────────────

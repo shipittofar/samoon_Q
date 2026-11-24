@@ -59,6 +59,12 @@ export type RichNotificationType =
   | 'wallet_refund'
   | 'wallet_topup'
   | 'wallet_adjustment'
+  | 'settlement_payout_requested'
+  | 'settlement_account_submitted'
+  | 'settlement_account_approved'
+  | 'settlement_account_rejected'
+  | 'settlement_payout_paid'
+  | 'settlement_payout_rejected'
 
 export interface NotificationScope {
   tenantId: string

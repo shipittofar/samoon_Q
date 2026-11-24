@@ -425,7 +425,7 @@ describe('getAdminNav() — cafe module admin visibility (P6.3)', () => {
 
   it('getAdminNav([restaurant]) returns 4 items (analytics + tenants + staff + branches)', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['restaurant'])).toHaveLength(27)
+    expect(getAdminNav(['restaurant'])).toHaveLength(28)
   })
 
   it('getAdminNav([]) returns empty array (no active modules)', async () => {

@@ -1030,27 +1030,27 @@ describe('P7.5 Navigation — AUDIT_LOGS_NAV_ITEM in all modules', () => {
   })
 
   it('RESTAURANT_MODULE.adminNavItems has 6 items', () => {
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(27)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(28)
   })
 
   it('CAFE_MODULE.adminNavItems has 9 items', () => {
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(27)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(28)
   })
 
   it('BAR_MODULE.adminNavItems has 9 items', () => {
-    expect(BAR_MODULE.adminNavItems).toHaveLength(28)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(29)
   })
 
   it('FOOD_COURT_MODULE.adminNavItems has 8 items', () => {
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(27)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(28)
   })
 
   it('FOOD_TRUCK_MODULE.adminNavItems has 8 items', () => {
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(26)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(27)
   })
 
   it('MOBILE_CAFE_MODULE.adminNavItems has 8 items', () => {
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(26)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(27)
   })
 
   it('rbac-audit nav item has permissionKey audit.view', () => {
