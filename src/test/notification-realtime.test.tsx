@@ -63,7 +63,9 @@ describe('personal notification socket', () => {
     })
     const keys = invalidate.mock.calls.map((c) => (c[0] as { queryKey: unknown[] }).queryKey[0])
     expect(keys).toEqual(expect.arrayContaining(['rich-notifications', 'notification-summary', 'notification-unread-count']))
-    expect(toastFn).toHaveBeenCalledWith('سفارش جدید — سفارش #12', expect.objectContaining({ icon: '📦' }))
+    const [body, opts] = toastFn.mock.calls[0] as [(t: { id: string }) => React.ReactElement<{ children: string }>, unknown]
+    expect(body({ id: 't1' }).props.children).toBe('سفارش جدید — سفارش #12')
+    expect(opts).toEqual(expect.objectContaining({ icon: '📦' }))
 
     // A reconnect refetches, so nothing sent while offline is missed.
     invalidate.mockClear()

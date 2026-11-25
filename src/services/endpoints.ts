@@ -94,6 +94,11 @@ export const ENDPOINTS = {
     DETAIL: (id: string) => `/reservations/${id}/`,
     CANCEL: (id: string) => `/reservations/${id}/cancel/`,
     CONFIRM: (id: string) => `/reservations/${id}/confirm/`,
+    STATUS: (id: string) => `/reservations/${id}/status/`,
+    DURATION: (id: string) => `/reservations/${id}/duration/`,
+    CONSOLE_LIST: (tenantId: string) => `/reservations/console-reservations/tenants/${tenantId}/`,
+    CONSOLE_DETAIL: (tenantId: string, id: string) =>
+      `/reservations/console-reservations/tenants/${tenantId}/${id}/`,
     CONSOLE_PENDING_COUNT: (tenantId: string, branchId: string) =>
       `/reservations/console-reservations/tenants/${tenantId}/branches/${branchId}/pending-count/`,
     AVAILABLE_SLOTS: '/reservations/available-slots/',

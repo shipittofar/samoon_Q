@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
 import { CheckCircle2, Clock, MapPin, XCircle } from 'lucide-react'
 import { AuthGuard } from '@/components/auth/AuthGuard'
@@ -17,6 +19,7 @@ import {
   type BusinessRequest,
   type BusinessTypeValue,
 } from '@/services/superadmin.service'
+import { onLiveChange, refreshSession } from '@/lib/live-updates'
 import type { GeoPoint } from '@/types/branch'
 
 /** Tehran: where the map starts before the applicant picks a point. */
@@ -47,6 +50,13 @@ const EMPTY_FORM: FormState = {
 function RequestStatusCard({ item }: { item: BusinessRequest }) {
   const t = useTranslations('superadmin')
   const locale = useLocale()
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const openConsole = async () => {
+    // Make sure the session already says "business account".
+    await refreshSession(queryClient).catch(() => undefined)
+    router.push('/console')
+  }
   const icon =
     item.status === 'approved' ? (
       <CheckCircle2 className="h-6 w-6 text-[var(--success-text)]" aria-hidden="true" />
@@ -75,9 +85,8 @@ function RequestStatusCard({ item }: { item: BusinessRequest }) {
             <>
               <p className="text-sm font-medium text-[var(--fg)]">{t('register.approvedTitle')}</p>
               <p className="text-sm text-[var(--fg-muted)]">{t('register.approvedDesc')}</p>
-              {/* Full reload so the session (now a business account) is fetched again. */}
               <div className="pt-1">
-                <Button size="sm" onClick={() => window.location.assign('/console')}>
+                <Button size="sm" onClick={() => void openConsole()}>
                   {t('register.openConsole')}
                 </Button>
               </div>
@@ -117,6 +126,8 @@ function RegisterBusinessContent() {
       .catch(() => setLoadError(true))
   }, [])
   useEffect(load, [load])
+  // Approved or rejected while this page is open: show it at once.
+  useEffect(() => onLiveChange(['business_requests'], load), [load])
 
   const hasPending = requests?.some((r) => r.status === 'pending') ?? false
   const hasApproved = requests?.some((r) => r.status === 'approved') ?? false

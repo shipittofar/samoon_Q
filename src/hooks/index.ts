@@ -1528,12 +1528,21 @@ export function useSetDefaultBranch() {
 }
 
 // ── Reservation Hooks ─────────────────────────────────────────────────────────
-export function useReservations() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+/** The signed-in customer's own reservations (every business). */
+export function useReservations(page = 1) {
   return useQuery({
-    queryKey: ['reservations', tenantId],
-    queryFn: () => reservationService.getReservations(),
+    queryKey: ['reservations', 'mine', page],
+    queryFn: () => reservationService.getReservations(page),
     staleTime: STALE_TIME,
+  })
+}
+
+export function useCancelMyReservation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => reservationService.cancelMine(id),
+    // Also after a refusal: the business may have handled it meanwhile.
+    onSettled: () => qc.invalidateQueries({ queryKey: ['reservations'] }),
   })
 }
 
@@ -1548,12 +1557,12 @@ export function useCreateReservation() {
   })
 }
 
-export function useAvailableSlots(date: string, branchId: string) {
+export function useAvailableSlots(date: string, branchId: string, guests = 1) {
   return useQuery({
-    queryKey: ['available-slots', date, branchId],
-    queryFn: () => reservationService.getAvailableSlots(date, branchId),
+    queryKey: ['available-slots', date, branchId, guests],
+    queryFn: () => reservationService.getAvailableSlots(date, branchId, guests),
     enabled: !!date && !!branchId,
-    staleTime: 60_000,
+    staleTime: 15_000,
   })
 }
 
@@ -1906,6 +1915,34 @@ export function useAdminReservation(id: string) {
     queryFn: () => adminService.getAdminReservation(id, tenantId),
     enabled: !!id && !!tenantId,
     staleTime: 10_000,
+  })
+}
+
+/** Move a reservation on from the console (seat, complete, no-show, cancel…). */
+export function useUpdateReservationStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: ReservationStatus }) => reservationService.updateStatus(id, status),
+    // Also after a refusal: someone else may have changed it meanwhile.
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['admin-reservations'] })
+      qc.invalidateQueries({ queryKey: ['admin-reservation'] })
+      qc.invalidateQueries({ queryKey: ['reservations'] })
+      invalidatePendingReservationsCountQueries(qc)
+    },
+  })
+}
+
+/** Change the length of one reservation; a refusal refreshes what is free now. */
+export function useUpdateReservationDuration() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, minutes }: { id: string; minutes: number }) => reservationService.updateDuration(id, minutes),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['admin-reservations'] })
+      qc.invalidateQueries({ queryKey: ['admin-reservation'] })
+      qc.invalidateQueries({ queryKey: ['available-slots'] })
+    },
   })
 }
 
@@ -4106,16 +4143,25 @@ export function useUpdateNotificationPreference() {
   })
 }
 
+/** Every list, bell and counter that shows notifications. */
+export function invalidateNotificationQueries(qc: QueryClient) {
+  for (const key of [
+    'rich-notifications',
+    'rich-notifications-unread',
+    'notification-unread-count',
+    'notification-summary',
+    'notification-statistics',
+  ]) {
+    void qc.invalidateQueries({ queryKey: [key] })
+  }
+}
+
 /** Mutation to mark a notification as read. */
 export function useMarkNotificationRead() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => notificationRichService.markAsRead(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['rich-notifications'] })
-      qc.invalidateQueries({ queryKey: ['notification-unread-count'] })
-      qc.invalidateQueries({ queryKey: ['notification-summary'] })
-    },
+    onSuccess: () => invalidateNotificationQueries(qc),
   })
 }
 
@@ -4124,11 +4170,7 @@ export function useMarkAllNotificationsRead() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (filter: NotificationFilter = {}) => notificationRichService.markAllAsRead(filter),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['rich-notifications'] })
-      qc.invalidateQueries({ queryKey: ['notification-unread-count'] })
-      qc.invalidateQueries({ queryKey: ['notification-summary'] })
-    },
+    onSuccess: () => invalidateNotificationQueries(qc),
   })
 }
 
@@ -4137,9 +4179,7 @@ export function useArchiveNotification() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => notificationRichService.archiveNotification(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['rich-notifications'] })
-    },
+    onSuccess: () => invalidateNotificationQueries(qc),
   })
 }
 
@@ -4148,10 +4188,7 @@ export function useDeleteNotification() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => notificationRichService.deleteNotification(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['rich-notifications'] })
-      qc.invalidateQueries({ queryKey: ['notification-unread-count'] })
-    },
+    onSuccess: () => invalidateNotificationQueries(qc),
   })
 }
 

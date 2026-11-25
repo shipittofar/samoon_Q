@@ -434,7 +434,7 @@ export interface OrderStatusHistory {
 // ============================================================
 // RESERVATION TYPES
 // ============================================================
-export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed'
+export type ReservationStatus = 'pending' | 'confirmed' | 'seated' | 'cancelled' | 'completed' | 'no_show'
 
 export interface Reservation {
   id: string
@@ -450,6 +450,19 @@ export interface Reservation {
   email?: string
   status: ReservationStatus
   confirmation_code?: string
+  /** Exact time (ISO), when the backend sends one. */
+  reserved_at?: string
+  branch_name?: string
+  business_name?: string
+  /** Local end time ("21:00") and length. */
+  end_time?: string
+  duration_minutes?: number
+  /** How long it could run at most now (console detail). */
+  max_duration_minutes?: number
+  /** The guest's account (business console only). */
+  customer_id?: string | null
+  /** The customer may still cancel it (server decision). */
+  can_cancel?: boolean
   created_at: string
 }
 

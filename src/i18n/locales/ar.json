@@ -645,6 +645,22 @@
     "history": "سجل الطلبات"
   },
   "reservation": {
+    "chooseBusinessTitle": "اختر نشاطاً تجارياً أولاً",
+    "chooseBusinessDesc": "افتح نشاطاً يقبل الحجوزات ثم احجز طاولتك فيه.",
+    "browseBusinesses": "تصفح الأنشطة",
+    "requestSent": "تم إرسال الطلب",
+    "requestSentDesc": "سيؤكده النشاط التجاري. يصلك إشعار ويمكنك متابعته في لوحة حسابك.",
+    "requestSentToast": "تم إرسال طلب الحجز.",
+    "signInToReserve": "سجّل الدخول لحجز طاولة.",
+    "signIn": "تسجيل الدخول",
+    "noSlots": "لا توجد أوقات متاحة في هذا اليوم لهذا العدد.",
+    "slotsFailed": "تعذّر تحميل الأوقات المتاحة. حاول مجدداً.",
+    "refusal": {
+      "reservation_time_unavailable": "تم حجز هذا الوقت للتو. اختر وقتاً آخر.",
+      "reservation_already_booked": "لديك حجز هنا في وقت قريب من هذا.",
+      "party_size_exceeds_capacity": "لا يتسع هذا الفرع لهذا العدد.",
+      "reservations_disabled": "هذا الفرع لا يقبل الحجوزات حالياً."
+    },
     "title": "حجز طاولة",
     "date": "التاريخ",
     "time": "الوقت",
@@ -698,6 +714,19 @@
     "backToHome": "العودة إلى الرئيسية"
   },
   "dashboard": {
+    "reservationStatus": {
+      "pending": "بانتظار التأكيد",
+      "confirmed": "مؤكد",
+      "seated": "على الطاولة",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "no_show": "لم يحضر"
+    },
+    "cancelReservation": "إلغاء الحجز",
+    "cancelReservationConfirm": "إلغاء حجز {place} في {when}؟ لا يمكن التراجع عن ذلك.",
+    "keepReservation": "الاحتفاظ به",
+    "reservationCancelled": "تم إلغاء الحجز.",
+    "reservationsLoadFailed": "تعذّر تحميل حجوزاتك.",
     "wallet": "المحفظة",
     "title": "حسابي",
     "orders": "الطلبات",
@@ -972,6 +1001,64 @@
     "must_accept_terms": "يجب أن تقبل الشروط"
   },
   "console": {
+    "reservationRules": {
+      "open": "أوقات الحجز",
+      "title": "أوقات الحجز",
+      "back": "الحجوزات",
+      "branch": "الفرع",
+      "subtitle": "كم مرة يمكن الحجز، وكم تدوم مدة الحجز، وكم حجزاً يمكن في الوقت نفسه. تسري التغييرات على الحجوزات الجديدة فقط.",
+      "platformTitle": "أوقات الحجز",
+      "platformSubtitle": "القيم الافتراضية لكل الأنشطة ولكل نوع نشاط. يمكن لكل فرع تحديد قيمه.",
+      "everyone": "كل الأنشطة",
+      "custom": "معدّل",
+      "saved": "تم الحفظ.",
+      "failed": "تعذّر التحميل أو الحفظ.",
+      "retry": "حاول مجدداً",
+      "save": "حفظ",
+      "useDefaults": "استخدام الافتراضي",
+      "noLimit": "بلا حد",
+      "inherited": "الافتراضي: {value}",
+      "range": "عدد صحيح من {min} إلى {max}",
+      "capacity": "سعة ضيوف هذا الفرع: {count} (إعدادات الفرع).",
+      "capacityNone": "لم تُحدَّد سعة ضيوف لهذا الفرع (إعدادات الفرع).",
+      "fields": {
+        "slot_minutes": "موعد جديد كل (دقيقة)",
+        "duration_minutes": "مدة الحجز (دقيقة)",
+        "last_before_close_minutes": "آخر حجز قبل الإغلاق (دقيقة)",
+        "lead_minutes": "الحجز قبل الموعد بـ (دقيقة)",
+        "max_days_ahead": "الحجز حتى (أيام قادمة)",
+        "max_concurrent": "حجوزات في الوقت نفسه"
+      },
+      "hints": {
+        "slot_minutes": "60 تعني 12:00 و13:00 و14:00…",
+        "duration_minutes": "يمكن تغييرها لحجز واحد.",
+        "last_before_close_minutes": "اجعلها بطول المدة إن وجب الانتهاء قبل الإغلاق.",
+        "lead_minutes": "0 يسمح بالحجز الفوري.",
+        "max_days_ahead": "تُحسب من اليوم.",
+        "max_concurrent": "كراسٍ أو غرف أو مختصون."
+      }
+    },
+    "reservationDuration": {
+      "minutes": "المدة (دقيقة)",
+      "shorter": "أقصر بـ 15 دقيقة",
+      "longer": "أطول بـ 15 دقيقة",
+      "save": "تغيير المدة",
+      "saved": "تم تغيير المدة.",
+      "failed": "تعذّر تغيير المدة.",
+      "notFree": "الوقت بعد هذا الحجز غير متاح لهذه المدة.",
+      "freeUntil": "متاح حتى {time} (بحد أقصى {minutes} دقيقة)",
+      "noFreeTime": "الوقت بعده محجوز؛ يمكن تقصيره فقط."
+    },
+    "statusSeated": "على الطاولة",
+    "reservationActions": {
+      "confirm": "تأكيد",
+      "seat": "وصل الضيوف",
+      "complete": "إنهاء",
+      "noShow": "لم يحضر",
+      "cancel": "إلغاء الحجز",
+      "back": "رجوع",
+      "sure": "حجز {name} في {when}. لا يمكن التراجع عن ذلك ويؤثر على الضيف. هل تتابع؟"
+    },
     "serviceArea": {
       "pinVerified": "تم تأكيد الدبوس كموقع دقيق",
       "pinUnverified": "الدبوس غير مؤكد — قد يُوجَّه العملاء إلى مكان خاطئ.",
@@ -6119,6 +6206,7 @@
       "currencies": "العملات والأسعار",
       "wallets": "محافظ المستخدمين",
       "topups": "عمليات الشحن",
+      "reservations": "أوقات الحجز",
       "settlement": "التسوية مع الأنشطة",
       "platformPanel": "لوحة المنصة",
       "registerBusiness": "تسجيل نشاط تجاري"

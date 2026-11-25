@@ -21,6 +21,55 @@ export interface CreateReservationPayload {
   notes?: string
 }
 
+/** Reservation as the backend sends it. */
+export interface ReservationApi {
+  id: string
+  branch_id: string
+  branch_name?: string
+  business_name?: string
+  guest_name: string
+  guest_phone: string
+  party_size: number
+  reserved_at: string
+  /** In the branch's own time zone. */
+  local_date: string
+  local_time: string
+  local_end_time?: string
+  duration_minutes?: number
+  max_duration_minutes?: number
+  confirmation_code?: string
+  customer_id?: string | null
+  notes?: string
+  status: Reservation['status']
+  can_cancel?: boolean
+  created_at: string
+}
+
+/** Backend shape → the app's Reservation (date and time as the branch reads them). */
+export function normalizeReservation(r: ReservationApi): Reservation {
+  return {
+    id: r.id,
+    branch_id: r.branch_id,
+    branch_name: r.branch_name,
+    business_name: r.business_name,
+    date: r.local_date,
+    time: r.local_time,
+    end_time: r.local_end_time,
+    duration_minutes: r.duration_minutes,
+    max_duration_minutes: r.max_duration_minutes,
+    confirmation_code: r.confirmation_code,
+    customer_id: r.customer_id,
+    reserved_at: r.reserved_at,
+    guests: r.party_size,
+    name: r.guest_name,
+    phone_number: r.guest_phone,
+    notes: r.notes || undefined,
+    status: r.status,
+    can_cancel: r.can_cancel ?? false,
+    created_at: r.created_at,
+  }
+}
+
 export const reservationService = {
   async create(payload: CreateReservationPayload): Promise<Reservation> {
     if (USE_MOCK) {
@@ -33,17 +82,33 @@ export const reservationService = {
         created_at: new Date().toISOString(),
       }
     }
-    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CREATE, payload)
-    return data
+    const { data } = await api.post<ReservationApi>(ENDPOINTS.RESERVATIONS.CREATE, {
+      branch_id: payload.branch_id,
+      date: payload.date,
+      time: payload.time,
+      party_size: payload.guests,
+      guest_name: payload.name,
+      guest_phone: payload.phone_number,
+      notes: payload.notes ?? '',
+    })
+    return normalizeReservation(data)
   },
 
-  async getReservations(): Promise<PaginatedResponse<Reservation>> {
+  /** The signed-in customer's own reservations, latest first. */
+  async getReservations(page = 1): Promise<PaginatedResponse<Reservation>> {
     if (USE_MOCK) {
       await delay(600)
       return { count: MOCK_RESERVATIONS.length, next: null, previous: null, results: MOCK_RESERVATIONS }
     }
-    const { data } = await api.get<PaginatedResponse<Reservation>>(ENDPOINTS.RESERVATIONS.LIST)
-    return data
+    const { data } = await api.get<PaginatedResponse<ReservationApi>>(ENDPOINTS.RESERVATIONS.LIST, { params: { page } })
+    return { ...data, results: data.results.map(normalizeReservation) }
+  },
+
+  /** The customer calls off their own reservation. */
+  async cancelMine(id: string): Promise<Reservation> {
+    if (USE_MOCK) return reservationService.cancelReservation(id)
+    const { data } = await api.post<ReservationApi>(ENDPOINTS.RESERVATIONS.CANCEL(id))
+    return normalizeReservation(data)
   },
 
   async cancelReservation(id: string, tenantId?: string): Promise<Reservation> {
@@ -56,19 +121,35 @@ export const reservationService = {
         }
       return { ...res!, status: 'cancelled' }
     }
-    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CANCEL(id), null, {
-      ...(tenantId ? { params: { tenantId } } : {}),
-    })
-    return data
+    // From the console the business cancels; otherwise the guest does.
+    return tenantId ? reservationService.updateStatus(id, 'cancelled') : reservationService.cancelMine(id)
   },
 
-  async getAvailableSlots(date: string, branchId: string): Promise<string[]> {
+  /** The business moves a reservation on (reservations.manage). */
+  async updateStatus(id: string, status: Reservation['status']): Promise<Reservation> {
+    if (USE_MOCK) {
+      await delay(400)
+      const res = MOCK_RESERVATIONS.find((r) => r.id === id)
+      if (!res) throw new Error(`Reservation ${id} not found`)
+      return { ...res, status }
+    }
+    const { data } = await api.patch<ReservationApi>(ENDPOINTS.RESERVATIONS.STATUS(id), { status })
+    return normalizeReservation(data)
+  },
+
+  /** Make one reservation shorter or longer (reservations.manage). */
+  async updateDuration(id: string, minutes: number): Promise<Reservation> {
+    const { data } = await api.patch<ReservationApi>(ENDPOINTS.RESERVATIONS.DURATION(id), { duration_minutes: minutes })
+    return normalizeReservation(data)
+  },
+
+  async getAvailableSlots(date: string, branchId: string, guests = 1): Promise<string[]> {
     if (USE_MOCK) {
       await delay(500)
       return ['12:00', '12:30', '13:00', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00']
     }
     const { data } = await api.get<string[]>(ENDPOINTS.RESERVATIONS.AVAILABLE_SLOTS, {
-      params: { date, branch_id: branchId },
+      params: { date, branch_id: branchId, guests },
     })
     return data
   },

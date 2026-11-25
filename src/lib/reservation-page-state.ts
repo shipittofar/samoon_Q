@@ -5,17 +5,21 @@
  */
 export type ReservationPageView =
   | 'loading'
+  | 'no-business'
   | 'error'
   | 'unavailable-branch'
   | 'unavailable-empty'
   | 'ready'
 
 export function resolveReservationPageView(input: {
+  /** No business is chosen (the platform's own /reservation), so no branch list will ever load. */
+  noBusiness?: boolean
   branchesPending: boolean
   branchesError: boolean
   activeBranchReservationsEnabled: boolean | undefined
   reservationBranchCount: number
 }): ReservationPageView {
+  if (input.noBusiness) return 'no-business'
   if (input.branchesPending) return 'loading'
   if (input.branchesError) return 'error'
   if (input.activeBranchReservationsEnabled === false) return 'unavailable-branch'

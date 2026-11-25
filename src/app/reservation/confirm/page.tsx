@@ -96,9 +96,9 @@ function ReservationConfirmContent() {
               >
                 <CheckCircle2 className="h-10 w-10 text-white"/>
               </motion.div>
-              <h1 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">{t('confirmed')}</h1>
-              <p className="text-white/80 text-sm">{t('lookForwardToSeeing')}</p>
-              {status && (
+              <h1 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">{status === 'pending' ? t('requestSent') : t('confirmed')}</h1>
+              <p className="text-white/80 text-sm">{status === 'pending' ? t('requestSentDesc') : t('lookForwardToSeeing')}</p>
+              {status && status !== 'pending' && (
                 <span className="inline-block mt-2 px-3 py-0.5 rounded-full bg-white/20 text-white text-xs font-medium capitalize">
                   {status}
                 </span>

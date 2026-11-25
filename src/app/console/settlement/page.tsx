@@ -31,6 +31,7 @@ import {
 } from '@/services/settlement.service'
 import { COIN_KEYS, type CoinKey, type Paged } from '@/services/wallet.service'
 import { formatMoney } from '@/lib/currency'
+import { onLiveChange } from '@/lib/live-updates'
 import { useCurrencyStore } from '@/stores/currency'
 import { cn } from '@/utils'
 
@@ -586,6 +587,7 @@ export default function SettlementPage() {
   const [version, setVersion] = useState(0)
 
   const reload = useCallback(() => setVersion((v) => v + 1), [])
+  useEffect(() => onLiveChange(['settlement'], reload), [reload])
   useEffect(() => {
     if (!tenantId) return
     settlementService

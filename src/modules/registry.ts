@@ -1005,6 +1005,7 @@ export const DASHBOARD_MODULE: Module = {
     { href: '/dashboard/addresses', label: 'Addresses', icon: 'MapPin' },
     { href: '/dashboard/reservations', label: 'Reservations', icon: 'Calendar' },
     { href: '/dashboard/wallet', label: 'Wallet', icon: 'Wallet' },
+    { href: '/dashboard/notifications', label: 'Notifications', icon: 'Bell' },
     { href: '/dashboard/settings', label: 'Settings', icon: 'Settings' },
   ],
   defaultFeatureFlags: {},

@@ -29,6 +29,7 @@ export type RichNotificationType =
   | 'order_status_changed'
   | 'reservation_created'
   | 'reservation_confirmed'
+  | 'reservation_duration_changed'
   | 'reservation_cancelled'
   | 'staff_created'
   | 'staff_suspended'

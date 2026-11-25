@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { createElement, useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { orderWebSocket, notificationWebSocket, type ConnectionStatus } from '@/services/websocket.service'
@@ -10,7 +10,9 @@ import { notificationService } from '@/services/combined.service'
 import type { Notification, OrderStatus, LoginCredentials } from '@/types'
 import type { RichNotification } from '@/types/notification'
 import toast from 'react-hot-toast'
-import { performAuthenticatedLoginFlow } from '@/hooks'
+import { invalidateNotificationQueries, performAuthenticatedLoginFlow } from '@/hooks'
+import { useOpenNotification } from '@/hooks/open-notification'
+import { ALL_TOPICS, applyLiveChange, type LiveTopic } from '@/lib/live-updates'
 import {
   type AuthTransitionPhase,
   authTransitionLabelKey,
@@ -50,26 +52,27 @@ export function useOrderWebSocket(orderId: string | null) {
 }
 
 // ── useNotificationWebSocket ──────────────────────────────────────────────────
-/** Query keys that show notifications; refreshed when one arrives. */
-const NOTIFICATION_QUERY_KEYS = [
-  ['rich-notifications'],
-  ['rich-notifications-unread'],
-  ['notification-unread-count'],
-  ['notification-summary'],
-  ['notification-statistics'],
-] as const
+/** While the socket is down, refetch what is on screen this often. */
+const FALLBACK_REFRESH_MS = 60_000
+/** At most one refresh per this long when the user comes back to the tab. */
+const FOCUS_REFRESH_MS = 15_000
 
 /**
  * Personal notification socket (`/ws/notifications/?token=…&lang=…`), open
  * while signed in. Each new notification shows a toast (in the page's
  * language — the server renders it) and refreshes every notification list,
- * bell and counter. After a reconnect the lists are refetched too, so
- * anything that arrived while offline still shows up. Mock mode has no
- * backend socket.
+ * bell and counter; clicking the toast opens what it is about. `data.changed`
+ * messages refetch the affected data (orders, wallet, the session itself…)
+ * without a page reload. After a reconnect, on returning to the tab, and once
+ * a minute while the socket is down, everything on screen is refetched, so
+ * nothing missed offline stays stale. Mock mode has no backend socket.
  */
 export function useNotificationWebSocket() {
   const { isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
+  const openNotification = useOpenNotification()
+  const openRef = useRef(openNotification)
+  openRef.current = openNotification
   const [connected, setConnected] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected')
   const lang = typeof document !== 'undefined' ? document.documentElement.lang || 'fa' : 'fa'
@@ -77,30 +80,87 @@ export function useNotificationWebSocket() {
   useEffect(() => {
     if (!isAuthenticated || process.env.NEXT_PUBLIC_USE_MOCK === 'true') return
 
-    const refresh = () => {
-      for (const queryKey of NOTIFICATION_QUERY_KEYS) void queryClient.invalidateQueries({ queryKey })
+    const refresh = () => invalidateNotificationQueries(queryClient)
+    let lastFullRefresh = Date.now()
+    const refreshAll = () => {
+      lastFullRefresh = Date.now()
+      refresh()
+      applyLiveChange(queryClient, ALL_TOPICS)
+    }
+    let seenConnection = false
+    let online = false
+
+    // Several changes in one action (e.g. approving a business) become one refetch.
+    const pending = new Set<LiveTopic>()
+    let flushTimer: ReturnType<typeof setTimeout> | null = null
+    const onChanged = (data: unknown) => {
+      const topics = (data as { topics?: unknown } | null)?.topics
+      if (!Array.isArray(topics)) return
+      for (const topic of topics) if (ALL_TOPICS.includes(topic as LiveTopic)) pending.add(topic as LiveTopic)
+      if (pending.size === 0 || flushTimer) return
+      flushTimer = setTimeout(() => {
+        flushTimer = null
+        const batch = [...pending]
+        pending.clear()
+        applyLiveChange(queryClient, batch)
+      }, 300)
     }
 
     notificationWebSocket.connect(`/notifications/?lang=${encodeURIComponent(lang)}`)
 
     const unsubs = [
       notificationWebSocket.on('connected', () => setConnected(true)),
-      notificationWebSocket.on('disconnected', () => setConnected(false)),
+      notificationWebSocket.on('disconnected', () => {
+        online = false
+        setConnected(false)
+      }),
       notificationWebSocket.on('status', (s) => setConnectionStatus(s as ConnectionStatus)),
-      notificationWebSocket.on('connection_established', refresh),
+      notificationWebSocket.on('connection_established', () => {
+        online = true
+        if (seenConnection) refreshAll()
+        else refresh()
+        seenConnection = true
+      }),
+      notificationWebSocket.on('data.changed', onChanged),
       notificationWebSocket.on('notification.new', (data: unknown) => {
         const n = data as Partial<RichNotification> | null
         refresh()
         if (n?.title) {
-          toast(n.message ? `${n.title} — ${n.message}` : n.title, {
+          const text = n.message ? `${n.title} — ${n.message}` : n.title
+          const body = (shown: { id: string }) =>
+            createElement(
+              'button',
+              {
+                type: 'button',
+                className: 'text-start hover:underline',
+                onClick: () => {
+                  toast.dismiss(shown.id)
+                  void openRef.current(n)
+                },
+              },
+              text,
+            )
+          toast(body, {
+            duration: 8000,
             icon: n.priority === 'urgent' ? '⚠️' : n.category === 'order' ? '📦' : n.category === 'reservation' ? '📅' : '🔔',
           })
         }
       }),
     ]
 
+    const onVisible = () => {
+      if (!document.hidden && Date.now() - lastFullRefresh > FOCUS_REFRESH_MS) refreshAll()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    const fallback = setInterval(() => {
+      if (!online && !document.hidden) refreshAll()
+    }, FALLBACK_REFRESH_MS)
+
     return () => {
       unsubs.forEach((fn) => fn())
+      document.removeEventListener('visibilitychange', onVisible)
+      clearInterval(fallback)
+      if (flushTimer) clearTimeout(flushTimer)
       notificationWebSocket.disconnect()
     }
   }, [isAuthenticated, queryClient, lang])

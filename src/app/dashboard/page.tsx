@@ -37,7 +37,10 @@ export default function DashboardPage() {
   const QUICK_ACTIONS = resolveBestDashboardActions(tenantSlug)
 
   const orders = ordersData?.results || []
-  const reservations = reservationsData?.results || []
+  // Next ones first; finished and cancelled ones are on the reservations page.
+  const reservations = (reservationsData?.results || [])
+    .filter((r) => (r.status === 'pending' || r.status === 'confirmed') && new Date(r.reserved_at ?? `${r.date}T${r.time}`) > new Date())
+    .reverse()
   const activeOrder = orders.find((o) => !isTerminalOrderStatus(o) && o.status !== 'cancelled')
 
   const stats = [
@@ -183,10 +186,13 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-[var(--fg)]">{t('guestsTimeTemplate', { guests: res.guests, time: res.time })}</p>
-                  <p className="text-sm text-[var(--fg-muted)]">{formatDate(res.date)}</p>
+                  <p className="text-sm text-[var(--fg-muted)]">
+                    {formatDate(`${res.date}T00:00`)}
+                    {res.business_name ? ` · ${res.business_name}` : ''}
+                  </p>
                 </div>
-                <Badge variant={res.status === 'confirmed' ? 'success' : res.status === 'cancelled' ? 'danger' : 'warning'} className="capitalize">
-                  {res.status}
+                <Badge variant={res.status === 'confirmed' ? 'success' : 'warning'}>
+                  {t(`reservationStatus.${res.status}`)}
                 </Badge>
               </Card>
             ))}

@@ -20,6 +20,7 @@
  */
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
+import { normalizeReservation, reservationService, type ReservationApi } from '@/services/combined.service'
 import { MOCK_MENU_ITEMS, MOCK_ORDERS, MOCK_PLATFORM_USERS, MOCK_BUSINESS_CUSTOMERS, MOCK_BRANCH_CUSTOMERS, MOCK_RESERVATIONS, MOCK_CUSTOMER_NOTES, MOCK_CUSTOMER_TAG_DEFINITIONS, MOCK_CUSTOMER_TAG_ASSIGNMENTS, MOCK_CUSTOMER_ANALYTICS, MOCK_CUSTOMER_MARKETING, MOCK_CUSTOMER_COUPONS, MOCK_CUSTOMER_TIMELINE } from '@/lib/mock-data'
 import { isPickupDeliveryRejectionError, resolveStatusUpdate, type OrderStatusContext } from '@/lib/order-status'
 import { branchBelongsToMockTenant, mockBranchTenantId } from '@/lib/mock-tenant-scope'
@@ -186,6 +187,10 @@ function buildAdminOrdersParams(
     return { ...request.filters }
   }
   return { ...request.filters, admin: true }
+}
+
+export interface ConsoleReservationsPage extends PaginatedResponse<Reservation> {
+  counts?: Partial<Record<Reservation['status'], number>>
 }
 
 function applyReservationFilters(
@@ -452,26 +457,26 @@ export const adminService = {
       }
       return res
     }
-    const { data } = await api.get<Reservation>(ENDPOINTS.RESERVATIONS.DETAIL(id), {
-      params: { tenantId },
-    })
-    return data
+    const { data } = await api.get<ReservationApi>(ENDPOINTS.RESERVATIONS.CONSOLE_DETAIL(tenantId, id))
+    return normalizeReservation(data)
   },
 
-  // Falls back to GET /reservations/ in real mode; swap to ENDPOINTS.ADMIN.RESERVATIONS when deployed
-  async getAdminReservations(filters: AdminReservationFilters = {}): Promise<PaginatedResponse<Reservation>> {
+  /** Reservations of the branches the caller may view; `counts` ignore the status filter. */
+  async getAdminReservations(filters: AdminReservationFilters = {}): Promise<ConsoleReservationsPage> {
     if (USE_MOCK) {
       await delay(500)
       const filtered = applyReservationFilters(MOCK_RESERVATIONS, filters)
       return paginate(filtered, filters.page, filters.page_size)
     }
-    const { data } = await api.get<PaginatedResponse<Reservation>>(ENDPOINTS.RESERVATIONS.LIST, {
-      params: { ...filters, admin: true },
-    })
-    return data
+    const { tenantId, ...params } = filters
+    if (!tenantId) throw new Error('No tenant')
+    const { data } = await api.get<PaginatedResponse<ReservationApi> & Pick<ConsoleReservationsPage, 'counts'>>(
+      ENDPOINTS.RESERVATIONS.CONSOLE_LIST(tenantId),
+      { params },
+    )
+    return { ...data, results: data.results.map(normalizeReservation) }
   },
 
-  // ⚠️ Backend blocker: POST /reservations/{id}/confirm/ not yet deployed
   async confirmReservation(id: string, tenantId: string): Promise<Reservation> {
     if (USE_MOCK) {
       await delay(400)
@@ -485,10 +490,7 @@ export const adminService = {
         confirmation_code: `SAV-${Math.floor(Math.random() * 9000) + 1000}`,
       }
     }
-    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CONFIRM(id), null, {
-      params: { tenantId },
-    })
-    return data
+    return reservationService.updateStatus(id, 'confirmed')
   },
 
   async getCustomers(filters: AdminCustomerFilters = {}): Promise<PaginatedResponse<ConsoleCustomer>> {

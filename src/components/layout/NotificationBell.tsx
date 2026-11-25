@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Bell, X, Check, Archive, Trash2, ExternalLink, AlertTriangle, Info, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
@@ -15,7 +16,9 @@ import {
   useMarkAllNotificationsRead,
   useArchiveNotification,
 } from '@/hooks'
+import { useOpenNotification } from '@/hooks/open-notification'
 import { useLocalizedNumber } from '@/i18n/hooks'
+import { notificationsPage } from '@/lib/notification-target'
 import type { RichNotification, NotificationPriority } from '@/types/notification'
 
 const PRIORITY_ICON: Record<NotificationPriority, React.ReactNode> = {
@@ -46,10 +49,10 @@ interface NotifItemProps {
   notification: RichNotification
   onRead: (id: string) => void
   onArchive: (id: string) => void
-  onClose: () => void
+  onOpen: (n: RichNotification) => void
 }
 
-function NotifItem({ notification, onRead, onArchive, onClose }: NotifItemProps) {
+function NotifItem({ notification, onRead, onArchive, onOpen }: NotifItemProps) {
   const t = useTranslations('notifications')
   const { formatRelativeTime } = useLocalizedNumber()
   return (
@@ -62,7 +65,7 @@ function NotifItem({ notification, onRead, onArchive, onClose }: NotifItemProps)
       <div className="mt-1 flex-shrink-0">
         {PRIORITY_ICON[notification.priority]}
       </div>
-      <div className="flex-1 min-w-0">
+      <button type="button" onClick={() => onOpen(notification)} className="flex-1 min-w-0 text-start">
         <div className="flex items-start justify-between gap-2">
           <p className={cn('text-sm truncate', notification.status === 'unread' && 'font-medium')}>
             {notification.title}
@@ -73,16 +76,12 @@ function NotifItem({ notification, onRead, onArchive, onClose }: NotifItemProps)
         </div>
         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notification.message}</p>
         {notification.deepLink && (
-          <Link
-            href={notification.deepLink.href}
-            onClick={onClose}
-            className="inline-flex items-center gap-1 mt-1 text-xs text-primary hover:underline"
-          >
+          <span className="inline-flex items-center gap-1 mt-1 text-xs text-primary group-hover:underline">
             {t('view')} <ExternalLink className="w-3 h-3"/>
-          </Link>
+          </span>
         )}
-      </div>
-      <div className="flex-shrink-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      </button>
+      <div className="flex-shrink-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
         {notification.status === 'unread' && (
           <button
             onClick={() => onRead(notification.id)}
@@ -120,6 +119,8 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
   const markRead = useMarkNotificationRead()
   const markAll = useMarkAllNotificationsRead()
   const archive = useArchiveNotification()
+  const openNotification = useOpenNotification()
+  const pathname = usePathname()
 
   const unreadCount = summary?.unreadCount ?? 0
   const urgentCount = summary?.urgentCount ?? 0
@@ -214,7 +215,10 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
                     notification={n}
                     onRead={(id) => markRead.mutate(id)}
                     onArchive={(id) => archive.mutate(id)}
-                    onClose={() => setOpen(false)}
+                    onOpen={(item) => {
+                      setOpen(false)
+                      void openNotification(item)
+                    }}
                   />
                 ))
               )}
@@ -223,7 +227,7 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
             {/* Footer */}
             <div className="border-t border-border px-4 py-2.5">
               <Link
-                href="/console/notifications"
+                href={notificationsPage(pathname)}
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center gap-1.5 text-sm text-primary hover:underline"
               >

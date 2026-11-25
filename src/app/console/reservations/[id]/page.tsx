@@ -21,16 +21,20 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { useAdminReservation } from '@/hooks'
+import { ReservationDuration } from '@/components/admin/ReservationDuration'
+import { ReservationActions } from '@/components/admin/ReservationActions'
 import type { ReservationStatus } from '@/types'
 
-const STATUS_CONFIG: Record<
+const STATUS_CONFIG: Partial<Record<
   ReservationStatus,
   { labelKey: string; badge: 'warning' | 'info' | 'success' | 'danger' }
-> = {
+>> = {
   pending:   { labelKey: 'statusPending',   badge: 'warning' },
   confirmed: { labelKey: 'statusConfirmed', badge: 'success' },
   cancelled: { labelKey: 'statusCancelled', badge: 'danger'  },
   completed: { labelKey: 'statusCompleted', badge: 'info'    },
+  seated:    { labelKey: 'statusSeated',    badge: 'success' },
+  no_show:   { labelKey: 'statusNoShow',    badge: 'danger'  },
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -97,12 +101,15 @@ function ReservationDetailContent({ id }: { id: string }) {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+        <ReservationActions reservation={reservation} />
+
         {/* Booking Details */}
         <Section title={t('bookingDetails')}>
           <InfoRow icon={Calendar} label={t('date')} value={reservation.date} />
-          <InfoRow icon={Clock} label={t('time')} value={reservation.time} />
+          <InfoRow icon={Clock} label={t('time')} value={<span dir="ltr">{reservation.end_time ? `${reservation.time}–${reservation.end_time}` : reservation.time}</span>} />
+          <div className="py-2"><ReservationDuration reservation={reservation} /></div>
           <InfoRow icon={Users} label={t('reservationTableHeaders.guests')} value={reservation.guests} />
-          <InfoRow icon={Hash} label={t('reservationTableHeaders.branch')} value={reservation.branch?.name ?? reservation.branch_id} />
+          <InfoRow icon={Hash} label={t('reservationTableHeaders.branch')} value={reservation.branch_name ?? reservation.branch?.name ?? reservation.branch_id} />
           {reservation.confirmation_code && (
             <InfoRow icon={CheckCircle} label={t('confirmation')} value={
               <span className="font-mono text-[var(--success-text)]">{reservation.confirmation_code}</span>
@@ -118,9 +125,9 @@ function ReservationDetailContent({ id }: { id: string }) {
           <InfoRow icon={User} label={t('name')} value={reservation.name} />
           <InfoRow icon={Phone} label={t('phone_number')} value={reservation.phone_number} />
           {reservation.email && <InfoRow icon={Mail} label={t('email')} value={reservation.email} />}
-          {reservation.user && (
+          {(reservation.customer_id ?? reservation.user?.id) && (
             <div className="mt-3 pt-3 border-t text-xs text-[var(--fg-muted)]">
-              <Link href={`/console/customers/${reservation.user.id}`} className="text-[var(--info-text)] hover:underline">
+              <Link href={`/console/customers/${reservation.customer_id ?? reservation.user?.id}`} className="text-[var(--info-text)] hover:underline">
                 {t('viewCustomerProfileArrow')}
               </Link>
             </div>

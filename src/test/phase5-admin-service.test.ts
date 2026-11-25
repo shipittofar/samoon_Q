@@ -227,8 +227,8 @@ describe('admin.service.ts — source structure', () => {
     expect(src()).toContain('ENDPOINTS.ORDERS.STATUS')
   })
 
-  it('uses ENDPOINTS.RESERVATIONS.CONFIRM', () => {
-    expect(src()).toContain('ENDPOINTS.RESERVATIONS.CONFIRM')
+  it('confirms through the status endpoint', () => {
+    expect(src()).toContain("updateStatus(id, 'confirmed')")
   })
 })
 

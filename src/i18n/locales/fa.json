@@ -645,6 +645,22 @@
     "history": "تاریخچه سفارشات"
   },
   "reservation": {
+    "chooseBusinessTitle": "ابتدا یک کسب‌وکار انتخاب کنید",
+    "chooseBusinessDesc": "کسب‌وکاری را که رزرو می‌پذیرد باز کنید و میزتان را همان‌جا رزرو کنید.",
+    "browseBusinesses": "دیدن کسب‌وکارها",
+    "requestSent": "درخواست رزرو ثبت شد",
+    "requestSentDesc": "کسب‌وکار باید آن را تأیید کند. نتیجه با اعلان به شما می‌رسد و در داشبورد قابل پیگیری است.",
+    "requestSentToast": "درخواست رزرو ثبت شد.",
+    "signInToReserve": "برای رزرو میز وارد حساب خود شوید.",
+    "signIn": "ورود",
+    "noSlots": "در این روز برای این تعداد مهمان ساعت خالی نیست.",
+    "slotsFailed": "ساعت‌های خالی بارگذاری نشد. دوباره تلاش کنید.",
+    "refusal": {
+      "reservation_time_unavailable": "این ساعت همین حالا پر شد. ساعت دیگری انتخاب کنید.",
+      "reservation_already_booked": "شما نزدیک همین ساعت این‌جا رزرو دارید.",
+      "party_size_exceeds_capacity": "ظرفیت این شعبه برای این تعداد کافی نیست.",
+      "reservations_disabled": "این شعبه فعلاً رزرو نمی‌پذیرد."
+    },
     "title": "رزرو میز",
     "date": "تاریخ",
     "time": "ساعت",
@@ -698,6 +714,19 @@
     "backToHome": "بازگشت به خانه"
   },
   "dashboard": {
+    "reservationStatus": {
+      "pending": "در انتظار تأیید",
+      "confirmed": "تأیید شده",
+      "seated": "پشت میز",
+      "completed": "انجام شده",
+      "cancelled": "لغو شده",
+      "no_show": "عدم حضور"
+    },
+    "cancelReservation": "لغو رزرو",
+    "cancelReservationConfirm": "رزرو {place} در {when} لغو شود؟ این کار برگشت‌پذیر نیست.",
+    "keepReservation": "نگه‌داشتن رزرو",
+    "reservationCancelled": "رزرو لغو شد.",
+    "reservationsLoadFailed": "رزروهای شما بارگذاری نشد.",
     "wallet": "کیف پول",
     "title": "حساب من",
     "orders": "سفارشات",
@@ -972,6 +1001,64 @@
     "must_accept_terms": "باید شرایط را بپذیرید"
   },
   "console": {
+    "reservationRules": {
+      "open": "زمان‌بندی رزرو",
+      "title": "زمان‌بندی رزرو",
+      "back": "رزروها",
+      "branch": "شعبه",
+      "subtitle": "هر چند وقت یک بار می‌شود رزرو کرد، هر رزرو چقدر طول می‌کشد و چند رزرو هم‌زمان ممکن است. تغییرات فقط روی رزروهای جدید اعمال می‌شود.",
+      "platformTitle": "زمان‌بندی رزرو",
+      "platformSubtitle": "پیش‌فرض برای همهٔ کسب‌وکارها و هر نوع کسب‌وکار. هر شعبه می‌تواند مقدار خودش را داشته باشد.",
+      "everyone": "همهٔ کسب‌وکارها",
+      "custom": "تغییر یافته",
+      "saved": "ذخیره شد.",
+      "failed": "بارگذاری یا ذخیره انجام نشد.",
+      "retry": "تلاش دوباره",
+      "save": "ذخیره",
+      "useDefaults": "استفاده از پیش‌فرض",
+      "noLimit": "بدون محدودیت",
+      "inherited": "پیش‌فرض: {value}",
+      "range": "عدد صحیح بین {min} و {max}",
+      "capacity": "ظرفیت مهمان این شعبه: {count} (تنظیمات شعبه).",
+      "capacityNone": "برای این شعبه ظرفیت مهمان تعیین نشده است (تنظیمات شعبه).",
+      "fields": {
+        "slot_minutes": "فاصلهٔ ساعت‌ها (دقیقه)",
+        "duration_minutes": "مدت هر رزرو (دقیقه)",
+        "last_before_close_minutes": "آخرین رزرو قبل از بستن (دقیقه)",
+        "lead_minutes": "حداقل زمان قبل از رزرو (دقیقه)",
+        "max_days_ahead": "رزرو تا چند روز آینده",
+        "max_concurrent": "تعداد رزرو هم‌زمان"
+      },
+      "hints": {
+        "slot_minutes": "۶۰ یعنی ۱۲:۰۰، ۱۳:۰۰، ۱۴:۰۰ و …",
+        "duration_minutes": "برای یک رزرو خاص هم قابل تغییر است.",
+        "last_before_close_minutes": "اگر باید قبل از بستن تمام شود، برابر مدت رزرو بگذارید.",
+        "lead_minutes": "۰ یعنی رزرو لحظه‌ای مجاز است.",
+        "max_days_ahead": "از امروز حساب می‌شود.",
+        "max_concurrent": "تعداد صندلی، اتاق یا متخصص."
+      }
+    },
+    "reservationDuration": {
+      "minutes": "مدت (دقیقه)",
+      "shorter": "۱۵ دقیقه کمتر",
+      "longer": "۱۵ دقیقه بیشتر",
+      "save": "تغییر مدت",
+      "saved": "مدت رزرو تغییر کرد.",
+      "failed": "مدت رزرو تغییر نکرد.",
+      "notFree": "بعد از این رزرو تا آن ساعت خالی نیست.",
+      "freeUntil": "تا ساعت {time} خالی است (حداکثر {minutes} دقیقه)",
+      "noFreeTime": "بعد از آن پر است؛ فقط کمتر می‌شود."
+    },
+    "statusSeated": "پشت میز",
+    "reservationActions": {
+      "confirm": "تأیید",
+      "seat": "مهمان رسید",
+      "complete": "پایان",
+      "noShow": "عدم حضور",
+      "cancel": "لغو رزرو",
+      "back": "بازگشت",
+      "sure": "رزرو {name} در {when}. این کار برگشت‌پذیر نیست و برای مهمان ثبت می‌شود. ادامه می‌دهید؟"
+    },
     "serviceArea": {
       "pinVerified": "پین به‌عنوان موقعیت دقیق تأیید شده است",
       "pinUnverified": "پین تأیید نشده است — ممکن است مشتریان به مکان اشتباه مسیریابی شوند.",
@@ -6119,6 +6206,7 @@
       "currencies": "ارزها و نرخ‌ها",
       "wallets": "کیف پول کاربران",
       "topups": "شارژهای کیف پول",
+      "reservations": "زمان‌بندی رزرو",
       "settlement": "تسویه با کسب‌وکارها",
       "platformPanel": "پنل پلتفرم",
       "registerBusiness": "ثبت کسب‌وکار"

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import {
@@ -16,18 +17,22 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
+import { ReservationActions } from '@/components/admin/ReservationActions'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
 import { APP_URL } from '@/constants'
 
 
 const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary'> = {
-  confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'secondary',
+  confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'secondary', seated: 'success', no_show: 'danger',
 }
 
 const STATUS_KEY: Record<string, string> = {
   confirmed: 'statusConfirmed', pending: 'statusPending', cancelled: 'statusCancelled', completed: 'statusCompleted',
+  seated: 'statusSeated', no_show: 'statusNoShow',
 }
+
+const PAGE_SIZE = 50
 
 export default function AdminReservationsPage() {
   const t = useTranslations('console')
@@ -40,14 +45,19 @@ export default function AdminReservationsPage() {
   const canManageReservationQr = usePermission('reservations.manage')
   const { data: adminBranches = [] } = useAdminBranches(tenantId)
 
-  const todayStr = currentDate.toISOString().split('T')[0]
+  // The business's calendar day, not UTC's.
+  const todayStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`
+  const [page, setPage] = useState(1)
 
   const filters = useMemo<AdminReservationFilters>(() => ({
     ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
     ...(branchFilter !== 'all' ? { branch_id: branchFilter } : {}),
     ...(search ? { search } : {}),
     date: todayStr,
-  }), [statusFilter, branchFilter, search, todayStr])
+    page,
+    page_size: PAGE_SIZE,
+  }), [statusFilter, branchFilter, search, todayStr, page])
+  useEffect(() => setPage(1), [statusFilter, branchFilter, search, todayStr])
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const { data, isLoading, isError, refetch } = useAdminReservations(filters)
@@ -72,12 +82,17 @@ export default function AdminReservationsPage() {
 
   const selectedArr = Array.from(selectedIds)
 
-  const counts = useMemo(() => ({
-    all: data?.count ?? 0,
-    pending: reservations.filter((r) => r.status === 'pending').length,
-    confirmed: reservations.filter((r) => r.status === 'confirmed').length,
-    cancelled: reservations.filter((r) => r.status === 'cancelled').length,
-  }), [data, reservations])
+  const totalPages = Math.max(1, Math.ceil((data?.count ?? 0) / PAGE_SIZE))
+
+  const counts = useMemo(() => {
+    const of = (s: ReservationStatus) => data?.counts?.[s] ?? reservations.filter((r) => r.status === s).length
+    return {
+      all: data?.counts ? Object.values(data.counts).reduce((sum, n) => sum + (n ?? 0), 0) : data?.count ?? 0,
+      pending: of('pending'),
+      confirmed: of('confirmed'),
+      cancelled: of('cancelled'),
+    }
+  }, [data, reservations])
 
   const getBranchName = (branchId: string) =>
     adminBranches.find((b) => b.id === branchId)?.name ?? '—'
@@ -96,6 +111,7 @@ export default function AdminReservationsPage() {
               <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('breadcrumbs.reservations')}</h1>
               <p className="text-[var(--fg-muted)] mt-1">{t('reservationsPageSubtitle')}</p>
             </div>
+            <Link href="/console/reservations/settings"><Button variant="secondary" size="sm">{t('reservationRules.open')}</Button></Link>
             <PreviewButton href="/reservation"label={t('previewReservationPage')} size="sm"/>
             {/* Date navigator */}
             <div className="flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-xl p-1">
@@ -244,7 +260,7 @@ export default function AdminReservationsPage() {
                             />
                           </td>
                           <td className="px-4 py-3.5">
-                            <p className="font-medium text-[var(--fg)]">{res.name}</p>
+                            <Link href={`/console/reservations/${res.id}`} className="font-medium text-[var(--fg)] hover:underline">{res.name}</Link>
                             {res.confirmation_code && <p className="text-xs text-[var(--accent-text)] font-mono">{res.confirmation_code}</p>}
                           </td>
                           <td className="px-4 py-3.5 whitespace-nowrap">
@@ -252,7 +268,7 @@ export default function AdminReservationsPage() {
                               <Calendar className="h-3.5 w-3.5 text-[var(--accent-text)]"/>{res.date}
                             </div>
                             <div className="flex items-center gap-1.5 text-[var(--fg-muted)] mt-0.5">
-                              <Clock className="h-3.5 w-3.5"/>{res.time}
+                              <Clock className="h-3.5 w-3.5"/><span dir="ltr">{res.end_time ? `${res.time}–${res.end_time}` : res.time}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3.5">
@@ -308,6 +324,7 @@ export default function AdminReservationsPage() {
                                 </Button>
                               </div>
                             )}
+                            {res.status !== 'pending' && <ReservationActions reservation={res} />}
                           </td>
                         </motion.tr>
                       )
@@ -320,6 +337,15 @@ export default function AdminReservationsPage() {
                   <div className="py-16 text-center">
                     <Calendar className="h-10 w-10 text-[var(--fg-subtle)] mx-auto mb-3"/>
                     <p className="text-[var(--fg-muted)]">{t('noReservationsFound')}</p>
+                  </div>
+                )}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-3">
+                    <span className="text-xs text-[var(--fg-muted)]">{t('pageOfTotalCount', { page, totalPages, count: data?.count ?? 0 })}</span>
+                    <div className="flex gap-2">
+                      <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>{t('previousLabel')}</Button>
+                      <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>{t('nextLabel')}</Button>
+                    </div>
                   </div>
                 )}
               </div>

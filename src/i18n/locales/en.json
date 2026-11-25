@@ -645,6 +645,22 @@
     "history": "Order History"
   },
   "reservation": {
+    "chooseBusinessTitle": "Choose a business first",
+    "chooseBusinessDesc": "Open a business that takes reservations, then book your table there.",
+    "browseBusinesses": "Browse businesses",
+    "requestSent": "Request sent",
+    "requestSentDesc": "The business will confirm it. You get a notification and can follow it in your dashboard.",
+    "requestSentToast": "Reservation request sent.",
+    "signInToReserve": "Sign in to reserve a table.",
+    "signIn": "Sign in",
+    "noSlots": "No free times on this day for this number of guests.",
+    "slotsFailed": "Free times could not be loaded. Please try again.",
+    "refusal": {
+      "reservation_time_unavailable": "This time was just taken. Please choose another one.",
+      "reservation_already_booked": "You already have a reservation here around this time.",
+      "party_size_exceeds_capacity": "This branch cannot seat that many guests.",
+      "reservations_disabled": "This branch is not accepting reservations right now."
+    },
     "title": "Make a Reservation",
     "date": "Date",
     "time": "Time",
@@ -698,6 +714,19 @@
     "backToHome": "Back to Home"
   },
   "dashboard": {
+    "reservationStatus": {
+      "pending": "Waiting for confirmation",
+      "confirmed": "Confirmed",
+      "seated": "Seated",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "no_show": "No-show"
+    },
+    "cancelReservation": "Cancel reservation",
+    "cancelReservationConfirm": "Cancel the reservation at {place} on {when}? This cannot be undone.",
+    "keepReservation": "Keep it",
+    "reservationCancelled": "Reservation cancelled.",
+    "reservationsLoadFailed": "Your reservations could not be loaded.",
     "wallet": "Wallet",
     "title": "My Account",
     "orders": "Orders",
@@ -972,6 +1001,64 @@
     "must_accept_terms": "You must accept the terms"
   },
   "console": {
+    "reservationRules": {
+      "open": "Reservation times",
+      "title": "Reservation times",
+      "back": "Reservations",
+      "branch": "Branch",
+      "subtitle": "How often guests can book, how long a reservation lasts and how many can run at once. Changes apply to new reservations only.",
+      "platformTitle": "Reservation times",
+      "platformSubtitle": "Defaults for every business and per business type. Each branch can set its own.",
+      "everyone": "Every business",
+      "custom": "customised",
+      "saved": "Saved.",
+      "failed": "Could not load or save.",
+      "retry": "Try again",
+      "save": "Save",
+      "useDefaults": "Use the defaults",
+      "noLimit": "no limit",
+      "inherited": "Default: {value}",
+      "range": "A whole number from {min} to {max}",
+      "capacity": "Guest capacity of this branch: {count} (branch settings).",
+      "capacityNone": "This branch has no guest capacity set (branch settings).",
+      "fields": {
+        "slot_minutes": "A new time every (minutes)",
+        "duration_minutes": "Length of a reservation (minutes)",
+        "last_before_close_minutes": "Last booking before closing (minutes)",
+        "lead_minutes": "Book at least this long before (minutes)",
+        "max_days_ahead": "Book up to (days ahead)",
+        "max_concurrent": "Reservations at the same time"
+      },
+      "hints": {
+        "slot_minutes": "60 means 12:00, 13:00, 14:00…",
+        "duration_minutes": "Can be changed for a single reservation.",
+        "last_before_close_minutes": "Set it to the length if it must end before closing.",
+        "lead_minutes": "0 allows last-minute bookings.",
+        "max_days_ahead": "Counted from today.",
+        "max_concurrent": "Chairs, rooms or specialists."
+      }
+    },
+    "reservationDuration": {
+      "minutes": "Length (minutes)",
+      "shorter": "15 minutes shorter",
+      "longer": "15 minutes longer",
+      "save": "Change length",
+      "saved": "Length changed.",
+      "failed": "The length could not be changed.",
+      "notFree": "The time after this reservation is not free that long.",
+      "freeUntil": "Free until {time} (at most {minutes} minutes)",
+      "noFreeTime": "The time after it is taken; it can only be shortened."
+    },
+    "statusSeated": "Seated",
+    "reservationActions": {
+      "confirm": "Confirm",
+      "seat": "Guests arrived",
+      "complete": "Complete",
+      "noShow": "No-show",
+      "cancel": "Cancel reservation",
+      "back": "Back",
+      "sure": "Reservation of {name} on {when}. This cannot be undone and the guest is affected. Continue?"
+    },
     "serviceArea": {
       "pinVerified": "Pin confirmed as the exact location",
       "pinUnverified": "Pin not confirmed — customers may be routed to the wrong spot.",
@@ -6129,6 +6216,7 @@
       "currencies": "Currencies & rates",
       "wallets": "User wallets",
       "topups": "Top-ups",
+      "reservations": "Reservation times",
       "settlement": "Settlement",
       "platformPanel": "Platform panel",
       "registerBusiness": "Register a business"
