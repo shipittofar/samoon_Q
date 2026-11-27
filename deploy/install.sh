@@ -19,9 +19,12 @@
 #   - clones the branch into /opt/samoon (or fast-forwards an existing clone);
 #   - writes /opt/samoon/.env from deploy/env.example, filled from the address;
 #   - brings up (or updates) the backend with deploy/backend-up.sh;
-#   - creates a self-signed TLS certificate only if none exists, or replaces
-#     its own self-signed one when the address changed (a real certificate
-#     you installed is never touched);
+#   - gets a trusted Let's Encrypt certificate for a domain (deploy/ssl.sh):
+#     DNS and port 80 are checked first, the existing one is kept while it is
+#     valid, renewal is scheduled. A temporary self-signed certificate is used
+#     only so nginx can start, and the install fails if Let's Encrypt fails;
+#   - an IP address (no domain) keeps a self-signed certificate: it cannot be
+#     trusted by browsers, and the install says so;
 #   - builds and starts the stack, waits for the app to be healthy;
 #   - installs the `samoon` command (update / status / logs / admin-add / set-address).
 # It never changes SSH or any other listening port. It only opens 80 and 443 in
@@ -35,6 +38,10 @@ INSTALL_DIR="${INSTALL_DIR:-/opt/samoon}"
 SSL_DIR="${SSL_DIR:-/etc/samoon/ssl}"
 DOMAIN="${DOMAIN:-}"
 SERVER_IP="${SERVER_IP:-}"
+# Optional extra names on the same certificate, e.g. EXTRA_DOMAINS=www.example.com
+# (their DNS must point to this server too). CERTBOT_EMAIL gets expiry reminders.
+EXTRA_DOMAINS="${EXTRA_DOMAINS:-}"
+CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
 # Tried in order when Docker Hub cannot be reached. Override with your own list.
 DOCKER_MIRRORS="${DOCKER_MIRRORS:-https://docker.arvancloud.ir https://registry.docker.ir}"
 ENV_FILE="${INSTALL_DIR}/.env"
@@ -188,10 +195,13 @@ fi
 # A certificate this script generated carries a marker with its address; it is
 # replaced when the address changes. A certificate without the marker is
 # yours (e.g. Let's Encrypt) and is never touched.
-mkdir -p "${SSL_DIR}"
+mkdir -p "${SSL_DIR}" /var/www/certbot
+# This certificate is only a placeholder so nginx can start. The real one is
+# requested from Let's Encrypt in step 10 (deploy/ssl.sh); if that fails the
+# install stops with the reason, and the placeholder is never called HTTPS.
 make_self_signed() {
-  warn "Creating a self-signed certificate for ${ADDR} in ${SSL_DIR}."
-  warn "Browsers will warn until you replace it with a real one (e.g. Let's Encrypt → copy to ${SSL_DIR})."
+  warn "Creating a temporary self-signed certificate for ${ADDR} in ${SSL_DIR} so nginx can start."
+  if [ "${IS_IP}" -eq 1 ]; then warn "An IP address cannot get a Let's Encrypt certificate; this one stays in use (browsers warn)."; fi
   if [ "${IS_IP}" -eq 1 ]; then SAN="IP:${ADDR}"; else SAN="DNS:${ADDR}"; fi
   openssl req -x509 -nodes -newkey rsa:2048 -days 825 -subj "/CN=${ADDR}" \
     -addext "subjectAltName=${SAN}" \
@@ -230,7 +240,7 @@ done
 [ "${state}" = "healthy" ] || die "App did not become healthy. Check: docker compose logs app"
 
 # ── 10. install the `samoon` command ────────────────────────────────────────
-chmod +x "${INSTALL_DIR}/deploy/samoon.sh"
+chmod +x "${INSTALL_DIR}/deploy/samoon.sh" "${INSTALL_DIR}/deploy/ssl.sh"
 ln -sf "${INSTALL_DIR}/deploy/samoon.sh" /usr/local/bin/samoon
 
 # Daily database backup, on unless someone turned it off (samoon backup-schedule off
@@ -238,5 +248,18 @@ ln -sf "${INSTALL_DIR}/deploy/samoon.sh" /usr/local/bin/samoon
 if [ ! -f /etc/cron.d/samoon-backup ] && [ ! -f /etc/samoon/.backup-schedule-off ]; then
   /usr/local/bin/samoon backup-schedule on || say "Could not turn on the daily backup (turn it on with: samoon backup-schedule on)"
 fi
-say "Installed. Commands:  samoon status | samoon update | samoon logs [service] | samoon admin-add | samoon set-address <ip-or-domain> | samoon backup | samoon restore <file> | samoon help"
+# ── 10b. trusted certificate from Let's Encrypt ────────────────────────────
+# Needs nginx running (it answers the challenge on port 80), so it comes after
+# the stack is up. It is idempotent: a current certificate is left alone.
+if [ "${IS_IP}" -eq 0 ]; then
+  say "Requesting a trusted Let's Encrypt certificate for ${ADDR}${EXTRA_DOMAINS:+ and ${EXTRA_DOMAINS}} (DNS and port 80 are checked first)"
+  # shellcheck disable=SC2086
+  if ! CERTBOT_EMAIL="${CERTBOT_EMAIL:-}" SSL_DIR="${SSL_DIR}" bash "${INSTALL_DIR}/deploy/ssl.sh" ensure "${ADDR}" ${EXTRA_DOMAINS:-}; then
+    die "HTTPS is NOT set up (reason above). The site runs on a temporary self-signed certificate, which browsers do not trust. Fix the reason, then run: samoon ssl ensure ${ADDR}${EXTRA_DOMAINS:+ ${EXTRA_DOMAINS}}"
+  fi
+else
+  warn "SERVER_IP given: no trusted certificate is possible for an IP address. Use DOMAIN=<domain> for HTTPS that browsers trust."
+fi
+
+say "Installed. Commands:  samoon status | samoon update | samoon logs [service] | samoon admin-add | samoon set-address <ip-or-domain> | samoon ssl status | samoon backup | samoon restore <file> | samoon help"
 say "Site: https://${ADDR}"

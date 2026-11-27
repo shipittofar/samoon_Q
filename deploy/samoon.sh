@@ -15,6 +15,9 @@
 #   samoon restore <file.dump> [--yes] replace the database with a backup (makes a safety
 #                                      backup first; asks you to type RESTORE)
 #   samoon backup-schedule on|off      daily backup at 03:30 UTC (on by default after install)
+#   samoon ssl status                  which HTTPS certificate is in use and when it expires
+#   samoon ssl ensure <domain>         get or renew the trusted Let's Encrypt certificate
+#   samoon ssl renew                   renew now if it is close to expiry (cron does this too)
 set -euo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/samoon}"
@@ -113,6 +116,8 @@ update_frontend() {
   pull_checkout "${INSTALL_DIR}" "Frontend" "${BRANCH}"
   say "Frontend: rebuilding and restarting (NEXT_PUBLIC_* values are compiled in, so a rebuild is required)"
   compose up -d --build
+  # nginx reads nginx.conf and the certificate only at start.
+  docker restart samoon-nginx >/dev/null 2>&1 || true
   wait_healthy samoon-app 60 || die "Frontend is not healthy after the update. Check: samoon logs app"
   say "Frontend: healthy."
 }
@@ -346,12 +351,24 @@ CRON
   esac
 }
 
+cmd_ssl() {
+  local ssl="${INSTALL_DIR}/deploy/ssl.sh"
+  [ -x "$ssl" ] || die "${ssl} is missing: update the site first (samoon update)"
+  case "${1:-status}" in
+    status) "$ssl" status ;;
+    ensure) shift || true; [ $# -ge 1 ] || die "Usage: samoon ssl ensure <domain> [more domains]"; "$ssl" ensure "$@" ;;
+    renew)  "$ssl" renew ;;
+    *) die "Usage: samoon ssl status|ensure <domain>|renew" ;;
+  esac
+}
+
 case "${1:-status}" in
   status)     cmd_status ;;
   backup)     shift || true; cmd_backup "$@" ;;
   backups)    cmd_backups ;;
   restore)    shift || true; cmd_restore "${1:-}" "${2:-}" ;;
   backup-schedule) shift || true; cmd_backup_schedule "${1:-status}" ;;
+  ssl)        shift || true; cmd_ssl "$@" ;;
   update)     shift || true; cmd_update "${1:-all}" ;;
   logs)       shift || true; cmd_logs "${1:-}" ;;
   restart)    cmd_restart ;;
