@@ -928,7 +928,7 @@ describe('P7.6 — Navigation Integration', () => {
 
   it('CAFE_MODULE adminNavItems count is 10', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(28)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(29)
   })
 })
 

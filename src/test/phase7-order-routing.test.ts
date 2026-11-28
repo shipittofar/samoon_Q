@@ -979,7 +979,7 @@ describe('Regression — P7.4 nav count updates', () => {
 
   it('Reg2: CAFE_MODULE has 8 adminNavItems', async () => {
     const { CAFE_MODULE } = await import('@/modules/registry')
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(28)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(29)
   })
 
   it('Reg3: BAR_MODULE has 8 adminNavItems', async () => {

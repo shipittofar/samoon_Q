@@ -631,7 +631,7 @@ describe('M. cafe regression', () => {
 
   it('cafe admin nav still returns 7 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(28)
+    expect(getAdminNav(['cafe'])).toHaveLength(29)
   })
 
   it('getHeaderNav(["cafe"]) does not include Live Location', async () => {
@@ -754,7 +754,7 @@ describe('Q. empty-module edge cases', () => {
   it('getAdminNav(["mobile_cafe", "bar", "cafe"]) aggregates all 42 admin items', async () => {
     const { getAdminNav } = await freshRegistry()
     const items = getAdminNav(['mobile_cafe', 'bar', 'cafe'])
-    expect(items).toHaveLength(84)
+    expect(items).toHaveLength(85)
   })
 })
 

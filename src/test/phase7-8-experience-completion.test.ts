@@ -338,7 +338,7 @@ describe('P7.8-C: Module nav counts with settings', () => {
 
   it('cafe module has 12 adminNavItems', async () => {
     const { CAFE_MODULE } = await import('@/modules/registry')
-    expect((CAFE_MODULE.adminNavItems ?? []).length).toBe(28)
+    expect((CAFE_MODULE.adminNavItems ?? []).length).toBe(29)
   })
 
   it('bar module has 12 adminNavItems', async () => {

@@ -507,6 +507,7 @@ export const CAFE_MODULE: Module = {
   adminNavItems: [
     ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
+    RESERVATIONS_NAV_ITEM,
     MENU_NAV_ITEM,
     CATEGORIES_NAV_ITEM,
     TAGS_NAV_ITEM,

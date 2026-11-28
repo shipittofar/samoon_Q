@@ -736,7 +736,7 @@ describe('F2 — Module registry runtime nav counts', () => {
 
   it('CAFE_MODULE has 11 admin nav items', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(28)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(29)
   })
 
   it('BAR_MODULE has 11 admin nav items', async () => {
@@ -766,7 +766,7 @@ describe('F2 — Module registry runtime nav counts', () => {
 
   it('getAdminNav(["cafe"]) returns 11 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(28)
+    expect(getAdminNav(['cafe'])).toHaveLength(29)
   })
 
   it('getAdminNav(["bar"]) returns 11 items', async () => {

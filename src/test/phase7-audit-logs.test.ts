@@ -1034,7 +1034,7 @@ describe('P7.5 Navigation — AUDIT_LOGS_NAV_ITEM in all modules', () => {
   })
 
   it('CAFE_MODULE.adminNavItems has 9 items', () => {
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(28)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(29)
   })
 
   it('BAR_MODULE.adminNavItems has 9 items', () => {

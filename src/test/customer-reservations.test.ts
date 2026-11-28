@@ -33,4 +33,9 @@ describe('customer reservations', () => {
     expect(page).not.toContain('airportBranch')
     expect(page).toContain('useCancelMyReservation')
   })
+
+  it('cafes have Reservations in the console menu', async () => {
+    const { CAFE_MODULE } = await import('@/modules/registry')
+    expect(CAFE_MODULE.adminNavItems?.some((n) => n.href === '/console/reservations')).toBe(true)
+  })
 })

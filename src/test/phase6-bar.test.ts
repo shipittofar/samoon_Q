@@ -604,7 +604,7 @@ describe('N. cafe regression', () => {
 
   it('getAdminNav(["cafe"]) still returns 7 cafe admin items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(28)
+    expect(getAdminNav(['cafe'])).toHaveLength(29)
   })
 })
 

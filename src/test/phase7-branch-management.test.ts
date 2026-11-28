@@ -587,7 +587,7 @@ describe('Q — Navigation', () => {
 
   it('Q8: CAFE_MODULE has 8 adminNavItems', async () => {
     const { CAFE_MODULE } = await import('@/modules/registry')
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(28)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(29)
   })
 
   it('Q9: BAR_MODULE has 8 adminNavItems', async () => {

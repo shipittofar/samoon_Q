@@ -616,7 +616,7 @@ describe('M. cafe regression', () => {
 
   it('cafe admin nav still returns 7 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(28)
+    expect(getAdminNav(['cafe'])).toHaveLength(29)
   })
 
   it('getHeaderNav(["cafe"]) does not include Live Location', async () => {

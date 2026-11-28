@@ -806,7 +806,7 @@ describe('V — adminNavItems counts after P6.15 (all modules +1 Tenants item)',
 
   it('cafe has 7 adminNavItems', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(28)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(29)
   })
 
   it('bar has 7 adminNavItems', async () => {
