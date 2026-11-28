@@ -112,7 +112,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
             type="button"
             onClick={() => activate.mutate(tenant.id)}
             disabled={activate.isPending}
-            className="text-[var(--success-text)] hover:underline disabled:opacity-40"
+            className="text-[var(--success-text)] hover:underline disabled:opacity-40 min-h-[24px] px-1"
             aria-label={t('activateNameAria', { name: tenant.name })}
           >
             {t('activateLabel')}
@@ -123,7 +123,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
             type="button"
             onClick={() => suspend.mutate(tenant.id)}
             disabled={suspend.isPending}
-            className="text-[var(--warning-text)] hover:underline disabled:opacity-40"
+            className="text-[var(--warning-text)] hover:underline disabled:opacity-40 min-h-[24px] px-1"
             aria-label={t('suspendNameAria', { name: tenant.name })}
           >
             {t('suspendLabel')}
@@ -134,7 +134,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
             type="button"
             onClick={() => archive.mutate(tenant.id)}
             disabled={archive.isPending}
-            className="text-[var(--danger-text)] hover:underline disabled:opacity-40"
+            className="text-[var(--danger-text)] hover:underline disabled:opacity-40 min-h-[24px] px-1"
             aria-label={t('archiveNameAria', { name: tenant.name })}
           >
             {t('archiveTitle')}
@@ -164,12 +164,12 @@ export default function AdminTenantsPage() {
     <ErrorBoundary feature="Tenant Management">
     <PermissionGuard permission="tenant.view"fallback={<AccessDenied />}>
     <main aria-label={t('tenantManagementAria')} className="p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold">{t('tenantsTitle')}</h1>
           <p className="text-sm text-[var(--fg-muted)] mt-1">{t('manageAndProvisionTenantsSubtitle')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <PreviewButton href="/"label={t('previewPublicSiteLabel')} size="sm"/>
           <Link
           href="/console/tenants/new"
@@ -204,6 +204,7 @@ export default function AdminTenantsPage() {
                 </select>
               </label>
             </div>
+            <div className="overflow-x-auto">
             <table className="w-full border rounded-lg overflow-hidden text-sm">
               <thead className="bg-[var(--card-hover)] text-left">
                 <tr>
@@ -220,6 +221,7 @@ export default function AdminTenantsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
             {visibleTenants.length === 0 && (
               <p className="text-center text-[var(--fg-subtle)] py-8">{t('noTenantsFound')}</p>
             )}

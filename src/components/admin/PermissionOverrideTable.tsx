@@ -56,7 +56,7 @@ export function PermissionOverrideTable({
       {overrides.length === 0 ? (
         <p className="text-sm text-[var(--fg-muted)]">{t('noPermissionOverrides')}</p>
       ) : (
-        <div className="rounded-lg border border-[var(--border)] overflow-hidden">
+        <div className="rounded-lg border border-[var(--border)] overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-[var(--card-hover)] border-b border-[var(--border)]">
               <tr>

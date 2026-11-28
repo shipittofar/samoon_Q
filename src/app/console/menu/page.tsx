@@ -240,7 +240,7 @@ export default function AdminMenuPage() {
     <PermissionGuard permission="menu.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminMenu">
     <div className="min-h-screen bg-[var(--bg)]">
-      <div className="pt-20 pb-16">
+      <div className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Header */}
@@ -252,7 +252,7 @@ export default function AdminMenuPage() {
               </div>
               <p className="text-[var(--fg-muted)] mt-1">{isFood ? t('menuPageSubtitle') : term('pageSubtitle')}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <PreviewButton href="/menu"label={isFood ? t('previewMenu') : term('preview')} size="sm"/>
               <MenuTemplatesButton
                 branchId={adminBranchId}

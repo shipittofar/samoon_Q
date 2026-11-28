@@ -12,7 +12,7 @@ export default async function MenuLoading() {
         {/* Hero / search area */}
         <div className="space-y-4">
           <Skeleton className="h-10 w-72 mx-auto" />
-          <Skeleton className="h-5 w-96 mx-auto" />
+          <Skeleton className="h-5 w-96 max-w-full mx-auto" />
           <Skeleton className="h-12 w-full max-w-xl mx-auto rounded-2xl" />
         </div>
 

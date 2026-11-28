@@ -138,7 +138,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className, highl
 
         {/* Badges */}
         <div className="absolute top-3 start-3 flex flex-col gap-1.5">
-          {item.is_new && <Badge variant="info"className="shadow-sm text-[10px]">{t('new')}</Badge>}
+          {item.is_new && <Badge variant="info" className="shadow-sm text-xs">{t('new')}</Badge>}
           {item.is_popular && <Badge variant="warning"className="shadow-sm text-[10px]">{t('popular')}</Badge>}
           {item.is_featured && <Badge variant="default"className="shadow-sm text-[10px]">{t('featured')}</Badge>}
           {hasDiscount && (

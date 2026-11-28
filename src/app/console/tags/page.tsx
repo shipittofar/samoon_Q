@@ -218,7 +218,7 @@ export default function AdminTagsPage() {
     <PermissionGuard permission="tag.view"fallback={<AccessDenied />}>
       <ErrorBoundary feature="AdminTags">
         <div className="min-h-screen bg-[var(--bg)]">
-          <div className="pt-20 pb-16">
+          <div className="pb-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="py-6 flex items-center justify-between gap-4 flex-wrap">
                 <div>

@@ -90,10 +90,11 @@ export function SuperuserModeBadge() {
     <Link
       href="/console/platform/businesses"
       title={t('mode.hint')}
-      className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--warning-subtle)] px-2.5 py-1 text-xs font-medium text-[var(--warning-text)] hover:opacity-90"
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--warning-subtle)] px-2.5 py-1 min-h-[32px] text-xs font-medium text-[var(--warning-text)] hover:opacity-90"
     >
       <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-      <span>{t('mode.badge')}</span>
+      {/* Icon only on phones so the switchers fit on one line. */}
+      <span className="sr-only sm:not-sr-only">{t('mode.badge')}</span>
       <span className="hidden sm:inline opacity-80">· {t('mode.switch')}</span>
     </Link>
   )

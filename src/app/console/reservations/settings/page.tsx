@@ -52,7 +52,7 @@ function Content() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 p-4 pt-20 sm:p-6 sm:pt-20">
+    <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
       <Link href="/console/reservations" className="inline-flex items-center gap-1 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)]">
         <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
         {t('back')}

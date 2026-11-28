@@ -130,8 +130,8 @@ export default function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-[var(--fg)]">{t('recentOrders')}</h2>
-          <Link href="/dashboard/orders"className="text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)] flex items-center gap-1">
-            {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5"/>
+          <Link href="/dashboard/orders"className="text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)] flex items-center gap-1 min-h-[24px] py-1">
+            {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden="true"/>
           </Link>
         </div>
         <Card padding="none">
@@ -174,8 +174,8 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-[var(--fg)]">{t('upcomingReservations')}</h2>
-            <Link href="/dashboard/reservations"className="text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)] flex items-center gap-1">
-              {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5"/>
+            <Link href="/dashboard/reservations"className="text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)] flex items-center gap-1 min-h-[24px] py-1">
+              {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5 rtl:-scale-x-100" aria-hidden="true"/>
             </Link>
           </div>
           <div className="grid gap-4">

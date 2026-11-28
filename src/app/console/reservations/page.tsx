@@ -102,7 +102,7 @@ export default function AdminReservationsPage() {
     <PermissionGuard permission="reservations.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminReservations">
     <div className="min-h-screen bg-[var(--bg)]">
-      <div className="pt-20 pb-16">
+      <div className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Header */}
@@ -187,7 +187,7 @@ export default function AdminReservationsPage() {
                 ))}
               </select>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {(['all', 'pending', 'confirmed', 'cancelled'] as const).map((s) => (
                 <button
                   key={s}

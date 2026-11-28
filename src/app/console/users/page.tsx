@@ -151,6 +151,7 @@ function UsersContent() {
         ) : staff.length === 0 ? (
           <div className="p-8 text-center text-[var(--fg-subtle)]">{t('noUsersMatchFilters')}</div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[var(--card-hover)] border-b border-[var(--border)]">
@@ -217,6 +218,7 @@ function UsersContent() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

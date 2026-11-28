@@ -94,7 +94,7 @@ function KitchenPageContent() {
                 <button
                   key={key}
                   onClick={() => setRefreshMs(ms)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                  className={`px-2 py-1 min-h-[28px] rounded text-xs font-medium transition-colors ${
                     refreshMs === ms
                       ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                       : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)]'

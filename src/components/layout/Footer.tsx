@@ -66,7 +66,7 @@ export function Footer() {
             <div className="space-y-3 text-sm text-[var(--fg-muted)]">
               <div className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-[var(--accent-text)]"/>
-                <a href="mailto:hello@samoon.com"className="hover:text-[var(--accent-text)] transition-colors">hello@samoon.com</a>
+                <a href="mailto:hello@samoon.com" className="inline-flex items-center min-h-[24px] py-1 hover:text-[var(--accent-text)] transition-colors">hello@samoon.com</a>
               </div>
             </div>
           </div>

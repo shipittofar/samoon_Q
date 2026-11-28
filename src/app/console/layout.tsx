@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useCallback, useRef, useState, type ReactNode } from 'react'
 import { Menu } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { AuthGuard } from '@/components/auth/AuthGuard'
@@ -48,6 +48,20 @@ import { Button } from '@/components/ui/Button'
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const t = useTranslations('console')
+  // The context bar wraps onto more lines on narrow screens; the page is
+  // pushed down by its real height so nothing hides under it.
+  const [barBottom, setBarBottom] = useState<number | null>(null)
+  const observerRef = useRef<ResizeObserver | null>(null)
+  // Callback ref: the bar mounts only after the auth guards let it through.
+  const barRef = useCallback((bar: HTMLDivElement | null) => {
+    observerRef.current?.disconnect()
+    observerRef.current = null
+    if (!bar || typeof ResizeObserver === 'undefined') return
+    const update = () => setBarBottom(Math.ceil(bar.getBoundingClientRect().bottom))
+    observerRef.current = new ResizeObserver(update)
+    observerRef.current.observe(bar)
+    update()
+  }, [])
 
   return (
     <ConsoleAccountTypeGuard>
@@ -56,9 +70,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <AdminHeader />
 
         {/* Context + breadcrumb bar — fixed below admin header */}
-        <div className="fixed top-16 inset-x-0 z-30 bg-[var(--bg)]/80 backdrop-blur border-b border-[var(--border)]">
-          <div className="flex items-center justify-between gap-2 px-4 py-1.5">
-            <div className="flex items-center gap-2 min-w-0">
+        <div ref={barRef} className="fixed top-16 inset-x-0 z-30 bg-[var(--bg)]/80 backdrop-blur border-b border-[var(--border)]">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 px-4 py-1.5">
+            <div className="flex items-center gap-2 min-w-0 max-w-full">
               {/* Mobile sidebar toggle */}
               <Button
                 variant="ghost"
@@ -81,7 +95,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <ConsoleWorkspaceRealtime />
 
         {/* Body: sidebar + page content */}
-        <div className="flex pt-28 min-h-screen">
+        <div className="flex pt-28 min-h-screen" style={barBottom ? { paddingTop: barBottom } : undefined}>
           <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <main id="main-content" className="flex-1 min-w-0 px-4 sm:px-6 pb-8 lg:ps-8">
             <ConsoleWorkspaceGate>{children}</ConsoleWorkspaceGate>

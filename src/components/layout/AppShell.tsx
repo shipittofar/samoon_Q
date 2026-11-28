@@ -64,7 +64,7 @@ function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
       <aside
         className={cn(
           'fixed inset-y-0 start-0 z-40 flex w-64 flex-col bg-[var(--card)] border-e border-[var(--border)] transition-transform duration-300 lg:static lg:translate-x-0 lg:z-auto',
-          open ? 'translate-x-0' : '-translate-x-full',
+          open ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full lg:rtl:translate-x-0',
         )}
         aria-label="Dashboard navigation"
       >

@@ -121,9 +121,9 @@ function BranchManagementContent() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold">{t('branchManagementTitle')}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <PreviewButton href="/restaurant"label={t('previewBranchLabel')} size="sm"/>
         <PermissionGuard permission="branches.create">
           <Link

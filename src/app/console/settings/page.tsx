@@ -596,22 +596,22 @@ function SettingsContent() {
   return (
     <div className="min-h-screen bg-[var(--card-hover)]">
       <div className="bg-[var(--card)] border-b sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-lg font-semibold">{t('settingsTitle')}</h1>
           <PreviewButton href="/"label={t('previewPublicSite')} size="sm"/>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="flex gap-6">
-          <nav className="w-44 shrink-0 space-y-1">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+          <nav className="flex md:flex-col gap-1 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:w-44 md:shrink-0 md:space-y-1">
             {TABS.map((tab) => {
               const { labelKey, icon: Icon } = TAB_CONFIG[tab]
               return (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left ${
+                  className={`shrink-0 whitespace-nowrap md:w-full flex items-center gap-2 px-3 py-2 min-h-[40px] text-sm rounded-md transition-colors text-start ${
                     activeTab === tab
                       ? 'bg-[var(--info-subtle)] text-[var(--info-text)] font-medium'
                       : 'text-[var(--fg-muted)] hover:bg-[var(--card-hover)]'
@@ -624,7 +624,7 @@ function SettingsContent() {
             })}
           </nav>
 
-          <div className="flex-1 bg-[var(--card)] rounded-lg border p-6">
+          <div className="flex-1 min-w-0 bg-[var(--card)] rounded-lg border p-4 sm:p-6">
             <h2 className="text-base font-semibold mb-5">{t(TAB_CONFIG[activeTab].labelKey)}</h2>
             <ErrorBoundary feature={`Settings — ${TAB_CONFIG[activeTab].labelKey}`}>
               {activeTab === 'general'        && <GeneralTab />}

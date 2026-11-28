@@ -263,14 +263,14 @@ function TenantDetailContent({ tenantId }: { tenantId: string }) {
 
   return (
     <main aria-label={t('tenantDetailAria')} className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between gap-3 mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <div className="flex items-center gap-3">
           <Link href="/console/tenants"className="text-sm text-[var(--fg-muted)] hover:underline">
             {t('backArrowTenants')}
           </Link>
           <h1 className="text-2xl font-bold">{tenant.name}</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Link
             href={`/console/tenants/${tenant.id}/edit`}
             className="text-sm text-accent hover:underline"

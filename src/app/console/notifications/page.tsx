@@ -126,13 +126,13 @@ function InboxTab({ tenantId }: InboxProps) {
       {/* Controls */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-muted)]"/>
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-muted)]"/>
           <input
             type="text"
             placeholder={t('searchNotificationsEllipsisPlaceholder')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full ps-9 pe-4 py-2 text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <select
@@ -162,7 +162,7 @@ function InboxTab({ tenantId }: InboxProps) {
           <option value="normal">{t('priorityNormal')}</option>
           <option value="low">{t('priorityLow')}</option>
         </select>
-        <Button variant="ghost"size="sm"onClick={() => refetch()}>
+        <Button variant="ghost" size="sm" onClick={() => refetch()} aria-label={t('refresh')}>
           <RefreshCw className="w-4 h-4"/>
         </Button>
         {unreadCount > 0 && (
@@ -400,7 +400,7 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
         </Button>
       </div>
 
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden">
+      <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--card-hover)]">
@@ -515,7 +515,7 @@ function NotificationsContent() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16">
         {/* Page header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[var(--fg)] flex items-center gap-2">
@@ -528,13 +528,13 @@ function NotificationsContent() {
         </div>
 
         {/* Tab nav */}
-        <div className="flex gap-1 mb-6 border-b border-[var(--border)]">
+        <div className="flex gap-1 mb-6 border-b border-[var(--border)] overflow-x-auto scrollbar-hide">
           {TAB_ORDER.map((tabId) => (
             <button
               key={tabId}
               onClick={() => setTab(tabId)}
               className={cn(
-                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px',
+                'flex shrink-0 items-center gap-2 whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px',
                 tab === tabId
                   ? 'border-primary text-primary'
                   : 'border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]',

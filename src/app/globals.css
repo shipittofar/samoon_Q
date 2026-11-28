@@ -480,3 +480,12 @@
   from { transform: translateX(12px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* Phones: form fields at 16px so iOS Safari does not zoom in on focus. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

@@ -265,7 +265,7 @@ function Accounts({ tenantId, overview, reload }: { tenantId: string; overview: 
               {a.status === 'approved' && !a.isDefault && (
                 <button
                   type="button"
-                  className="text-xs text-[var(--accent-text)] underline"
+                  className="text-xs text-[var(--accent-text)] underline min-h-[24px] px-1"
                   onClick={() => act(() => settlementService.defaultAccount(tenantId, a.id))}
                 >
                   {t('makeDefault')}
@@ -273,7 +273,7 @@ function Accounts({ tenantId, overview, reload }: { tenantId: string; overview: 
               )}
               <button
                 type="button"
-                className="text-xs text-[var(--fg-muted)] underline"
+                className="text-xs text-[var(--fg-muted)] underline min-h-[24px] px-1"
                 onClick={() => act(() => settlementService.disableAccount(tenantId, a.id))}
               >
                 {t('disable')}
@@ -407,7 +407,7 @@ function Payouts({ tenantId, money, version, reload }: { tenantId: string; money
               <Badge variant={PAYOUT_BADGE[p.status]}>{t(`payoutStatus.${p.status}`)}</Badge>
               <span className="text-xs text-[var(--fg-muted)]">{new Date(p.createdAt).toLocaleDateString(locale)}</span>
               {p.status === 'requested' && (
-                <button type="button" className="text-xs text-[var(--fg-muted)] underline" onClick={() => cancel(p.id)}>
+                <button type="button" className="text-xs text-[var(--fg-muted)] underline min-h-[24px] px-1" onClick={() => cancel(p.id)}>
                   {t('cancelRequest')}
                 </button>
               )}

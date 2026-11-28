@@ -63,7 +63,7 @@ function PromotionDetailContent({ id }: { id: string }) {
               <p className="text-sm text-[var(--fg-muted)] mt-0.5">{promotion.description}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <PreviewButton href="/promotions"label={t('previewPromotions')} size="sm"/>
             {promotion.active ? (
               <Badge variant="success"className="flex items-center gap-1">

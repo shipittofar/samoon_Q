@@ -68,7 +68,7 @@ export function HowItWorks() {
                 </p>
                 <Link
                   href={step.href}
-                  className="text-sm font-medium text-[var(--accent-text)] hover:text-[var(--accent-text)] hover:underline transition-colors"
+                  className="inline-flex items-center min-h-[24px] py-1 text-sm font-medium text-[var(--accent-text)] hover:text-[var(--accent-text)] hover:underline transition-colors"
                 >
                   {t(`howItWorks.steps.${step.key}.cta`)} →
                 </Link>

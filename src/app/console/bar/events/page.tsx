@@ -12,7 +12,7 @@ export default function BarEventsPage() {
     <ErrorBoundary feature="Bar Event Management">
       <PermissionGuard permission="operations.view"fallback={<AccessDenied />}>
         <main className="p-6 max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
             <h1 className="text-2xl font-bold">{t('eventManagementTitle')}</h1>
             <PreviewButton href="/events"label={t('previewEventsLabel')} size="sm"/>
           </div>

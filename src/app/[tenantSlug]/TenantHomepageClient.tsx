@@ -59,7 +59,7 @@ function Breadcrumb({ name }: { name: string }) {
     <nav aria-label={t('breadcrumbAria')} className="bg-[var(--bg)] border-b border-[var(--border)]">
       <ol className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1.5 text-sm text-[var(--fg-muted)]">
         <li className="inline-flex items-center">
-          <Link href="/discover"className="hover:text-[var(--fg)] transition-colors">
+          <Link href="/discover" className="inline-flex items-center min-h-[24px] py-1 hover:text-[var(--fg)] transition-colors">
             {t('discover')}
           </Link>
         </li>
@@ -346,7 +346,7 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
           {meta.phone_number && (
             <a
               href={`tel:${meta.phone_number}`}
-              className="flex items-center gap-3 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
+              className="flex items-center gap-3 min-h-[24px] py-1 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
             >
               <Phone className="w-4 h-4 shrink-0"aria-hidden="true"/>
               {meta.phone_number}
@@ -355,7 +355,7 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
           {meta.email && (
             <a
               href={`mailto:${meta.email}`}
-              className="flex items-center gap-3 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
+              className="flex items-center gap-3 min-h-[24px] py-1 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
             >
               <Mail className="w-4 h-4 shrink-0"aria-hidden="true"/>
               {meta.email}
@@ -366,7 +366,7 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
               href={meta.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
+              className="flex items-center gap-3 min-h-[24px] py-1 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
             >
               <Globe className="w-4 h-4 shrink-0"aria-hidden="true"/>
               {meta.website.replace(/^https?:\/\//, '')}
@@ -421,7 +421,7 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
         {branch.phone_number && (
           <a
             href={`tel:${branch.phone_number}`}
-            className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] flex items-center gap-1.5 mb-3"
+            className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] flex items-center gap-1.5 min-h-[24px] py-1 mb-2"
           >
             <Phone className="w-3.5 h-3.5 shrink-0"aria-hidden="true"/>
             {branch.phone_number}

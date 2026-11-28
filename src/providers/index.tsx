@@ -21,6 +21,7 @@ import { PostLoginRedirectHandler } from '@/providers/PostLoginRedirectHandler'
 import { setSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import { usePathname } from 'next/navigation'
+import { useLocale } from 'next-intl'
 import type { Role, TenantMembership } from '@/types/rbac'
 import { normalizeTenantPermissions, selectActiveMembership, hasAnyMembership } from '@/services/permission.service'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
@@ -189,8 +190,12 @@ function ThemeProvider({ children }: { children: ReactNode }) {
 }
 
 function RTLProvider({ children }: { children: ReactNode }) {
-  const { locale } = useLangStore()
+  // The locale the server rendered with (NEXT_LOCALE cookie / platform
+  // default) is the truth. The persisted store can hold a stale value (its
+  // default is 'en'), which used to flip a Persian page back to LTR after load.
+  const locale = useLocale()
   useEffect(() => {
+    if (useLangStore.getState().locale !== locale) useLangStore.setState({ locale })
     // P9.5.1A: config-driven RTL detection (Localization Runtime Service)
     // instead of a hardcoded ['fa', 'ar'] literal.
     document.documentElement.dir = getDirection(locale)

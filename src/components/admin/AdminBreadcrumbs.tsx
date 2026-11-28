@@ -106,7 +106,7 @@ export function AdminBreadcrumbs({ className, overrides }: AdminBreadcrumbsProps
         return (
           <span key={crumb.href} className="flex items-center gap-1">
             {i === 0 ? (
-              <Link href={crumb.href} className="hover:text-[var(--fg)] transition-colors" aria-label={t('adminConsoleAria')}>
+              <Link href={crumb.href} className="inline-flex items-center justify-center h-6 w-6 -m-1 rounded hover:text-[var(--fg)] transition-colors" aria-label={t('adminConsoleAria')}>
                 <LayoutDashboard className="h-3.5 w-3.5" />
               </Link>
             ) : isLast ? (

@@ -92,7 +92,7 @@ function BranchDetailContent({ id }: { id: string }) {
           </div>
           <p className="mt-1 text-sm text-[var(--fg-muted)]">{branch.slug}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <PreviewButton href="/restaurant"label={t('previewBranchLabel')} size="sm"/>
           <span className={`rounded-full px-3 py-1 text-sm font-medium capitalize ${STATUS_COLORS[branch.status]}`}>
             {t(BRANCH_STATUS_KEY[branch.status])}

@@ -113,7 +113,7 @@ export default function AdminOrdersPage() {
     <PermissionGuard permission="orders.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminOrders">
     <div className="min-h-screen bg-[var(--bg)]">
-      <div className="pt-20 pb-16">
+      <div className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6 flex items-center justify-between gap-4">
             <div>
@@ -123,7 +123,7 @@ export default function AdminOrdersPage() {
               </div>
               <p className="text-[var(--fg-muted)] mt-1">{t('ordersPageSubtitle')}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <div
                 role="group"
                 aria-label={t('ordersScopeToggleAria')}

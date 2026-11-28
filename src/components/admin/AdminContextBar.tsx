@@ -39,7 +39,7 @@ export function AdminContextBar() {
   }
 
   return (
-    <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap">
       <SuperuserModeBadge />
       <AdminTenantSwitcher />
       <AdminBranchSwitcher />

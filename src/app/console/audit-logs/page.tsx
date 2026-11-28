@@ -78,7 +78,7 @@ function AuditLogsContent() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <div className="pt-20 pb-16">
+      <div className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Header */}

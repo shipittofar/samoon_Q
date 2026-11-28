@@ -322,7 +322,7 @@ function VendorsSection() {
         <KpiCard label={t('totalCommission')} value={`$${data.totalCommission.toLocaleString()}`} />
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--bg)]">
@@ -426,6 +426,7 @@ function MenuSection() {
           )}
 
           {tab === 'category' && (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)]">
@@ -446,6 +447,7 @@ function MenuSection() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       </div>

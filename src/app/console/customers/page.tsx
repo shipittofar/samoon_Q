@@ -91,14 +91,14 @@ export default function AdminCustomersPage() {
     <PermissionGuard permission="customers.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminCustomers">
     <div className="min-h-screen bg-[var(--bg)]">
-      <div className="pt-20 pb-16">
+      <div className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-4 flex items-center justify-between gap-4">
+          <div className="py-4 flex items-center justify-between gap-4 flex-wrap">
             <div>
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('breadcrumbs.customers')}</h1>
               <p className="text-sm text-[var(--fg-muted)] mt-0.5">{t('customersPageSubtitle')}</p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 flex-wrap">
             <div
               role="group"
               aria-label={t('customersScopeToggleAria')}

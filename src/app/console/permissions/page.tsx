@@ -126,6 +126,7 @@ export default function PermissionsPage() {
               {filteredStaff.length === 0 ? (
                 <p className="p-6 text-sm text-[var(--fg-muted)] text-center">{t('noUsersMatchFilters')}</p>
               ) : (
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-[var(--card-hover)] border-b border-[var(--border)]">
@@ -161,6 +162,7 @@ export default function PermissionsPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           </section>

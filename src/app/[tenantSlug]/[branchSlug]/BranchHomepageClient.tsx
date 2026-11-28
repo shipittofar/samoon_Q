@@ -37,7 +37,7 @@ function Breadcrumb({ tenantSlug, tenantName, branchName }: { tenantSlug: string
     <nav aria-label={t('breadcrumbAria')} className="bg-[var(--bg)] border-b border-[var(--border)]">
       <ol className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1.5 text-sm text-[var(--fg-muted)] flex-wrap">
         <li className="inline-flex items-center">
-          <Link href="/discover"className="hover:text-[var(--fg)] transition-colors">{t('discover')}</Link>
+          <Link href="/discover" className="inline-flex items-center min-h-[24px] py-1 hover:text-[var(--fg)] transition-colors">{t('discover')}</Link>
         </li>
         <li aria-hidden="true"className="inline-flex items-center">
           <ChevronRight className="w-3.5 h-3.5 shrink-0"/>
@@ -256,7 +256,7 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
         {branch.phone_number && (
           <div className="flex items-center gap-3 text-[var(--fg-muted)]">
             <Phone className="w-4 h-4 shrink-0 text-[var(--accent)]"aria-hidden="true"/>
-            <a href={`tel:${branch.phone_number.replace(/\s/g, '')}`} className="hover:text-[var(--fg)] transition-colors">{branch.phone_number}</a>
+            <a href={`tel:${branch.phone_number.replace(/\s/g, '')}`} className="inline-flex items-center min-h-[24px] py-1 hover:text-[var(--fg)] transition-colors">{branch.phone_number}</a>
           </div>
         )}
         {branch.todayHours && (

@@ -126,7 +126,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                   <li>
                     <a
                       href={`tel:${meta.phone_number}`}
-                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
+                      className="flex items-center gap-2 min-h-[24px] py-1 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
                     >
                       <Phone className="h-4 w-4 text-[var(--accent-text)] shrink-0"/>
                       {meta.phone_number}
@@ -137,7 +137,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                   <li>
                     <a
                       href={`mailto:${meta.email}`}
-                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
+                      className="flex items-center gap-2 min-h-[24px] py-1 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
                     >
                       <Mail className="h-4 w-4 text-[var(--accent-text)] shrink-0"/>
                       {meta.email}
@@ -150,7 +150,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                       href={meta.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
+                      className="flex items-center gap-2 min-h-[24px] py-1 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
                     >
                       <Globe className="h-4 w-4 text-[var(--accent-text)] shrink-0"/>
                       {meta.website.replace(/^https?:\/\//, '')}
